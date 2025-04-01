@@ -4,9 +4,27 @@
     "@types/express": "^5.0.1",
     "@types/mongoose": "^5.11.96",
     "@types/node": "^22.13.14",
+    "nodemon": "^3.1.9",
+    "ts-node": "^10.9.2",
     "typescript": "^5.8.2"
   },
   "dependencies": {
-    "dotenv": "^16.4.7"
-  }
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^5.1.0",
+    "mongoose": "^8.13.1"
+  },
+  "name": "back-end",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "dev": "nodemon src/server.ts",
+    "build": "tsc",
+    "start": "node server.ts",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": ""
 }

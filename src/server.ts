@@ -1,16 +1,19 @@
-import express  from 'express';
-import dotenv from 'dotenv';
-import cors from 'cors';
+import app from './app'
+import { database } from './config/database';
+import config from './config/env'
 
 
-dotenv.config()
-const app=express()
 
-app.use(express.json())
-app.use(express.urlencoded({ extended: true }));
-app.use(cors({origin:'http://localhost:4200'}))
+async function startServer() {
+   try {
+    await database.connect()
+    app.listen(config.PORT,()=>{
+        console.log(`Server running on http://localhost:${config.PORT}`);
+    })
+   } catch (error) {
+    console.log('server failed to start due to database error:', error);
+    process.exit(1)
+   }
+}
 
-const port = process.env.PORT
-app.listen(port,()=>{
-    console.log("Server is running on port: ", port);
-})
+startServer()
