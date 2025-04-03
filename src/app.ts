@@ -9,8 +9,9 @@ const corsOption:cors.CorsOptions={
     allowedHeaders:"Content-Type, Authorization"
 }
 
+
+
 app.use(cors(corsOption))
 app.use(express.json())
-
 
 export default app
