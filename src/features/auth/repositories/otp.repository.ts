@@ -1,15 +1,22 @@
 import Otp,{ IOtp } from "../models/otp.model";
 import { IOtpRepository } from "./otp.repository.interface";
+import { injectable } from "inversify";
+// import mongoose from "mongoose";
 
-export class OtpRepository implements IOtpRepository{
+@injectable()
+export class OtpRepository implements IOtpRepository {
     async createOtp(otpData: Partial<IOtp>): Promise<IOtp> {
-        return Otp.create(otpData);
+        await Otp.deleteMany({ userId: otpData.userId });
+        const result = await Otp.create(otpData);
+        if (!result) {
+            throw new Error("Failed to create OTP");
+        }
+        return result as IOtp
     }
-    async findOtp(userId: string, otp: string): Promise<IOtp | null> {
-        return Otp.findOne({userId,otp, expiresAt:{$gt: new Date()}})
+    async findOtpByUserId(userId: string): Promise<IOtp | null> {
+        return await Otp.findOne({userId, expiresAt:{$gt: new Date()}}).sort({ expiresAt: -1 });
     }
     async deleteOtp(id: string): Promise<void> {
-        await Otp.deleteOne({_id:id})
+        await Otp.findByIdAndDelete(id)
     }
-
 }

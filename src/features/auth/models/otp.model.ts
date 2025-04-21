@@ -1,15 +1,15 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
 export interface IOtp extends Document {
-  userId: mongoose.Types.ObjectId;
-  otp: String;
+  userId: string;
+  otp: string;
   expiresAt: Date;
   createdAt: Date;
 }
 
 const otpSchema: Schema = new Schema(
   {
-    userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+    userId: { type: String, required: true, index:true },
     otp: { type: String, required: true },
     expiresAt: { type: Date, required: true },
   },

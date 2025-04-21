@@ -1,15 +1,12 @@
+import { injectable } from "inversify";
 interface IOtp{
-    generateOtp():String;
+    generateOtp():string;
     // verifyOtp(userId:string, otp:string):Boolean
 }
-
+@injectable()
 export class OtpService implements IOtp{
-    generateOtp(): String {
+    generateOtp(): string {
         return Math.floor(1000 + Math.random() * 9000).toString();
     }
-    // verifyOtp(userId:string, otp:string): Boolean {
-
-    //     return true
-    // }
     
 }
