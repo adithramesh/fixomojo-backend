@@ -94,8 +94,10 @@ export class AuthService implements IAuthService{
             return { success: false, message: "Invalid or expired OTP", status: 400 };
         }
 
-        const userId = (storedOtp._id as mongoose.Types.ObjectId).toString()
-        await this._otpRepository.deleteOtp(userId)
+        const otpId = (storedOtp._id as mongoose.Types.ObjectId).toString()
+        const userId = (user._id as mongoose.Types.ObjectId).toString()
+        await this._otpRepository.deleteOtp(otpId)
+
         if (context === 'signup') {
             if (!user.phoneVerified) {
               await this._userRepository.updateUser(tempUserId, { phoneVerified: true });
@@ -133,6 +135,7 @@ export class AuthService implements IAuthService{
           success: true,
           message: "OTP verified, proceed to reset password",
           reset_token:resetToken,
+          tempUserId:userId,
           status: 200,
         };
     }
@@ -140,9 +143,19 @@ export class AuthService implements IAuthService{
     }
 
     async resendOtp(data:OtpResendRequestDTO):Promise<SignupResponseDTO> {
-        const {tempUserId, phoneNumber}= data
+        const {tempUserId, phoneNumber, context}= data
+        console.log("context",context);
+        
+        console.log("tempUserId, phoneNumber", tempUserId, phoneNumber);
+        
         const user = await this._userRepository.findUserById(tempUserId);
-        if (!user || user.phoneVerified) {
+        console.log("user",user);
+
+        if (!user) {
+            return { success: false, message: "Invalid user", status: 400 };
+          }
+        
+        if (context ==="signup" && user.phoneVerified) {
             return { success: false, message: "Invalid user or already verified", status: 400 };
         }
 
@@ -170,6 +183,7 @@ export class AuthService implements IAuthService{
             message: "New OTP sent to your phone",
             tempUserId,
             status: 200,
+            context
         };
     }
 
@@ -210,7 +224,7 @@ export class AuthService implements IAuthService{
             return {success:false, message:"Please enter verified phone number",status:404}
         }
         const userId = (user._id as mongoose.Types.ObjectId).toString()
-        // console.log(userId);
+        console.log("userId at forgot password",userId);
         const otp = this._otpService.generateOtp();
         const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
         await this._otpRepository.createOtp({ userId, otp, expiresAt });
@@ -238,18 +252,33 @@ export class AuthService implements IAuthService{
         }
     }
 
-    async resetPassword(resetData:ResetPasswordRequestDTO):Promise<SignupResponseDTO>{
-        const {tempUserId, reset_token,newPassword}=resetData;
-        console.log("tempUserId, reset_token,newPassword",tempUserId, reset_token,newPassword);
-        
-        jwt.verify(reset_token,config.JWT_SECRET)
-        const hashedPassword = await this._passwordService.hash(newPassword)
-        await this._userRepository.updateUser(tempUserId, {password:hashedPassword})
-        return {
-            success:true,
-            message:"Password reset successful",
-            status:200
+    async resetPassword(resetData: ResetPasswordRequestDTO): Promise<SignupResponseDTO> {
+        const { tempUserId, reset_token, newPassword } = resetData;
+        // console.log("tempuserid 1", tempUserId);
+        // console.log("newPassword", newPassword);
+        try {
+          jwt.verify(reset_token, config.JWT_SECRET);
+          
+          const hashedPassword = await this._passwordService.hash(newPassword);
+        //   console.log("hashedPassword",hashedPassword);
+        //   console.log("tempuserid 2", tempUserId);
+          await this._userRepository.updateUser(tempUserId, { password: hashedPassword });
+          
+          return {
+            success: true,
+            message: "Password reset successful",
+            status: 200
+          };
+        } catch (error) {
+          console.error("Password reset failed:", error);
+      
+          return {
+            success: false,
+            message: "Password reset failed. Please try again.",
+            status: 500
+          };
         }
-    }
+      }
+      
 
 }

@@ -26,6 +26,6 @@ export interface SignupResponseDTO {
     access_token?: string;
     refresh_token?: string;
     reset_token?:string;
-    context?:string;
+    context?:"signup" | "forgot-password";
     status: number;
 }

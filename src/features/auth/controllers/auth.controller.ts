@@ -93,6 +93,7 @@ constructor(
         try {
             const resetData:ResetPasswordRequestDTO=req.body;
             const response = await this._authService.resetPassword(resetData)
+            console.log("response from reset password", response);
             res.status(response.status).json(response)
         } catch (error) {
             console.log("error occured", error);
@@ -101,7 +102,6 @@ constructor(
                 status: 0
             });
         }
-
     }
 }
 
