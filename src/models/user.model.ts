@@ -25,6 +25,7 @@ export interface IUser extends Document {
   about?: string;
   lisence?: string[];
   designation?: string;
+  someInfo:string
 }
 
 const userSchema:Schema = new Schema(
@@ -43,7 +44,8 @@ const userSchema:Schema = new Schema(
         image: {type : String},
         lisence: [{type : String}],
         designation: { type: String },
-        about:{type: String}
+        about:{type: String},
+        someInfo:{type: String}
       },
       { timestamps: true } 
 )
