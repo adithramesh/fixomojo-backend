@@ -1,5 +1,5 @@
 import { inject, injectable } from "inversify";
-import { TYPES } from "../types/types";
+import { TYPES } from "../../../types/types";
 import { IAuthController } from "./auth.controller.interface";
 import { AuthService } from "../services/auth.services";
 import { SignupResponseDTO, SignupUserRequestDTO } from "../dto/signup.dto";
@@ -7,6 +7,7 @@ import { Request, Response } from "express";
 import { OtpRequestDTO, OtpResendRequestDTO } from "../dto/otp-verify.dto";
 import { LoginRequestDTO } from "../dto/login.dto";
 import { ForgotPasswordRequestDTO, ResetPasswordRequestDTO } from "../dto/password.dto";
+import { HttpStatus } from "../../../utils/http-status.enum";
 
 @injectable()
 export class AuthController implements IAuthController {
@@ -21,9 +22,9 @@ constructor(
             res.status(response.status).json(response)
         } catch (error) {
             console.log("error occured", error);
-            res.status(500).json({
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
                 success: false, message: "Internal server error",
-                status: 0
+                status: HttpStatus.INTERNAL_SERVER_ERROR
             });
         }
     }
@@ -36,9 +37,9 @@ constructor(
             res.status(response.status).json(response)
         } catch (error) {
             console.log("error occured", error);
-            res.status(500).json({
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
                 success: false, message: "Internal server error",
-                status: 0
+                status: HttpStatus.INTERNAL_SERVER_ERROR
             });
         }
     }
@@ -51,9 +52,9 @@ constructor(
             res.status(response.status).json(response)
         } catch (error) {
             console.log("error occured", error);
-            res.status(500).json({
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
                 success: false, message: "Internal server error",
-                status: 0
+                status: HttpStatus.INTERNAL_SERVER_ERROR
             });
         }
     }
@@ -67,9 +68,9 @@ constructor(
             res.status(response.status).json(response)
         } catch (error) {
             console.log("error occured", error);
-            res.status(500).json({
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
                 success: false, message: "Internal server error",
-                status: 0
+                status: HttpStatus.INTERNAL_SERVER_ERROR
             });
         }
     }
@@ -82,9 +83,9 @@ constructor(
             res.status(response.status).json(response)
         } catch (error) {
             console.log("error occured", error);
-            res.status(500).json({
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
                 success: false, message: "Internal server error",
-                status: 0
+                status: HttpStatus.INTERNAL_SERVER_ERROR
             });
         }
     }
@@ -97,9 +98,9 @@ constructor(
             res.status(response.status).json(response)
         } catch (error) {
             console.log("error occured", error);
-            res.status(500).json({
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
                 success: false, message: "Internal server error",
-                status: 0
+                status: HttpStatus.INTERNAL_SERVER_ERROR
             });
         }
     }

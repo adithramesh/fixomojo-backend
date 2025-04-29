@@ -1,4 +1,5 @@
-import { Role } from "../models/user.model";
+import { Role } from "../../../models/user.model";
+import { HttpStatus } from "../../../utils/http-status.enum";
 
 export interface SignupUserRequestDTO {
     username: string;
@@ -27,5 +28,5 @@ export interface SignupResponseDTO {
     refresh_token?: string;
     reset_token?:string;
     context?:"signup" | "forgot-password";
-    status: number;
+    status: HttpStatus;
 }

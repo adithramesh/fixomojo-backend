@@ -15,10 +15,16 @@ export interface IUser extends Document {
   serviceType?: string;
   adminCode?: string;
   department?: string;
-  aadharVerified: boolean;
+  lisenceVerified: boolean;
   phoneVerified: boolean;
   createdAt: Date;
   updatedAt: Date;
+  status: string;
+  experience?:number;
+  image?: string;
+  about?: string;
+  lisence?: string[];
+  designation?: string;
 }
 
 const userSchema:Schema = new Schema(
@@ -31,8 +37,13 @@ const userSchema:Schema = new Schema(
         serviceType: { type: String },
         adminCode: { type: String },
         department: { type: String },
-        aadharVerified: { type: Boolean, default: false },
+        lisenceVerified: { type: Boolean, default: false },
         phoneVerified: { type: Boolean, default: false },
+        experience: {type : Number},
+        image: {type : String},
+        lisence: [{type : String}],
+        designation: { type: String },
+        about:{type: String}
       },
       { timestamps: true } 
 )

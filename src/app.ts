@@ -1,10 +1,11 @@
 import express, {Express} from 'express'
 import cors from 'cors'
 import config from './config/env'
-import { TYPES } from './features/auth/types/types'
+import { TYPES } from './types/types'
 import { AuthRoutes } from './routes/auth.routes'
-import container from './features/auth/container/container' 
+import container from './container/container' 
 import morgan from 'morgan'
+import { UserRoutes } from './routes/user.routes'
 
 const app:Express = express()
 const corsOption:cors.CorsOptions={
@@ -19,6 +20,8 @@ app.use(morgan('combined'));
 
 
 const authRoutes = container.get<AuthRoutes>(TYPES.AuthRoutes)
+const userRoutes = container.get<UserRoutes>(TYPES.UserRoutes)
 app.use('/auth', authRoutes.getRouter())
+app.use('/user', userRoutes.getRouter())
 
 export default app
