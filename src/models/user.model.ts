@@ -15,7 +15,7 @@ export interface IUser extends Document {
   serviceType?: string;
   adminCode?: string;
   department?: string;
-  lisenceVerified: boolean;
+  licenseStatus: string;
   phoneVerified: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -23,9 +23,8 @@ export interface IUser extends Document {
   experience?:number;
   image?: string;
   about?: string;
-  lisence?: string[];
+  license?: string[];
   designation?: string;
-  someInfo:string
 }
 
 const userSchema:Schema = new Schema(
@@ -38,14 +37,14 @@ const userSchema:Schema = new Schema(
         serviceType: { type: String },
         adminCode: { type: String },
         department: { type: String },
-        lisenceVerified: { type: Boolean, default: false },
+        licenseStatus: { type: String,enum: ['approved', 'blocked', 'pending', 'suspended', 'deleted'], default: 'pending' },
         phoneVerified: { type: Boolean, default: false },
         experience: {type : Number},
         image: {type : String},
-        lisence: [{type : String}],
+        license: [{type : String}],
         designation: { type: String },
+        status: { type: String, enum: ['active', 'blocked', 'pending', 'suspended', 'deleted'], default: 'active' },
         about:{type: String},
-        someInfo:{type: String}
       },
       { timestamps: true } 
 )

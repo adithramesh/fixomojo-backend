@@ -2,15 +2,18 @@ import { Container } from 'inversify'
 import { TYPES } from '../types/types'
 import { UserRepository } from '../repositories/user.repository'
 import { OtpRepository } from '../repositories/otp.repository'
-import { OtpService } from '../features/auth/services/otp.service'
-import { PasswordService } from '../features/auth/services/password.service'
-import { AuthService } from '../features/auth/services/auth.services'
-import { AuthController } from '../features/auth/controllers/auth.controller'
+import { OtpService } from '../services/auth/otp.service'
+import { PasswordService } from '../services/auth/password.service'
+import { AuthService } from '../services/auth/auth.services'
+import { AuthController } from '../controllers/auth/auth.controller'
 import { AuthRoutes } from '../routes/auth.routes'
 import { ServiceRepository } from '../repositories/service.repository'
-import { UserService } from '../features/users/services/user.service'
-import { UserController } from '../features/users/controllers/user.controller'
+import { UserService } from '../services/users/user.service'
+import { UserController } from '../controllers/users/user.controller'
 import { UserRoutes } from '../routes/user.routes'
+import { AdminService } from '../services/admin/admin.service'
+import { AdminController } from '../controllers/admin/admin.controller'
+import { AdminRoutes } from '../routes/admin.routes'
 
 
 const container = new Container()
@@ -26,5 +29,8 @@ container.bind<ServiceRepository>(TYPES.ServiceRepository).to(ServiceRepository)
 container.bind<UserService>(TYPES.UserService).to(UserService)
 container.bind<UserController>(TYPES.UserController).to(UserController)
 container.bind<UserRoutes>(TYPES.UserRoutes).to(UserRoutes)
+container.bind<AdminService>(TYPES.AdminService).to(AdminService)
+container.bind<AdminController>(TYPES.AdminController).to(AdminController)
+container.bind<AdminRoutes>(TYPES.AdminRoutes).to(AdminRoutes)
 
 export default container;

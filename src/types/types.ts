@@ -10,5 +10,8 @@ export const TYPES={
     ServiceRepository : Symbol.for("ServiceRepository"),
     UserService : Symbol.for("UserService"),
     UserController : Symbol.for("UserController"),
-    UserRoutes : Symbol.for("UserRoutes")
+    UserRoutes : Symbol.for("UserRoutes"),
+    AdminService : Symbol.for("AdminService"),
+    AdminController : Symbol.for("AdminController"),
+    AdminRoutes : Symbol.for("AdminRoutes")
 }

@@ -1,8 +1,9 @@
 import { Router } from 'express'
-import { AuthController } from '../features/auth/controllers/auth.controller'
+import { AuthController } from '../controllers/auth/auth.controller'
 import { inject, injectable } from 'inversify'
 import { TYPES } from '../types/types'
-// import { authMiddleware } from '../middlewares/auth.middleware'
+
+
 
 @injectable()
 export class AuthRoutes{
@@ -21,6 +22,7 @@ export class AuthRoutes{
         this.router.post('/forgot-password',this._authController.forgotPassword.bind(this._authController))
         this.router.post('/reset-password',this._authController.resetPassword.bind(this._authController))
         this.router.post('/login',this._authController.login.bind(this._authController))
+        this.router.post('/refresh-token', this._authController.refreshToken.bind(this._authController));
     }
 
     public getRouter(){
