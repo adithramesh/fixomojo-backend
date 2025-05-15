@@ -1,7 +1,8 @@
 import { Router } from 'express'
 import { inject, injectable } from 'inversify'
 import { TYPES } from '../types/types'
-import { UserController } from '../features/users/controllers/user.controller'
+import { UserController } from '../controllers/users/user.controller'
+import { authMiddleware } from '../middlewares/auth.middleware'
 
 @injectable()
 export class UserRoutes {
@@ -13,10 +14,11 @@ export class UserRoutes {
         this.initializeRoutes()
     }
     private initializeRoutes(){
+        this.router.use(authMiddleware);
         this.router.get('/home',this._userController.getHome.bind(this._userController))
     }
-
     public getRouter(){
         return this.router
     }
 }
+

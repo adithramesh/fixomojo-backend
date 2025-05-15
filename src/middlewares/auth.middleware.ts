@@ -1,23 +1,64 @@
 import jwt from 'jsonwebtoken';
 import config from '../config/env';
 import { Request, Response, NextFunction } from 'express';
+import { HttpStatus } from '../utils/http-status.enum';
+import User from '../models/user.model';
 
-interface AuthRequest extends Request {
-    user?: jwt.JwtPayload;
+export interface AuthRequest extends Request {
+    user?: {
+        id: string;
+        role: string;
+    };
 }
 
-export const authMiddleware = (req: AuthRequest, res: Response, next: NextFunction): void | Response => {
-    const token = req.headers['authorization']?.split(' ')[1]; // Assuming the token is sent in the format "Bearer <token>"
+export const authMiddleware = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
+    const token = req.headers['authorization']?.split(' ')[1];
+    console.log("middleware working");
+
     if (!token) {
-        return res.status(401).json({ message: 'No token provided' });
+        res.status(HttpStatus.UNAUTHORIZED).json({
+            success: false,
+            message: 'No token provided',
+            status: HttpStatus.UNAUTHORIZED
+        });
+        return;
     }
-    jwt.verify(token, config.JWT_SECRET, (err: jwt.VerifyErrors | null, decoded: string | jwt.JwtPayload | undefined) => {
-        if (err) {
-            return res.status(401).json({ message: 'Unauthorized' });
+
+    try {
+        const decoded = jwt.verify(token, config.JWT_SECRET) as jwt.JwtPayload;
+
+        const user = await User.findById(decoded.id);
+        if (!user) {
+            res.status(HttpStatus.UNAUTHORIZED).json({
+                success: false,
+                message: 'User not found',
+                status: HttpStatus.UNAUTHORIZED
+            });
+            return;
         }
-        if (decoded && typeof decoded === 'object') {
-            req.user = { id: decoded.id, role: decoded.role } as jwt.JwtPayload; // Save the decoded user info to the request object
+
+        if (user.status === 'blocked') {
+            res.status(HttpStatus.UNAUTHORIZED).json({
+                success: false,
+                message: 'User is blocked',
+                status: HttpStatus.UNAUTHORIZED,
+            });
+            return;
         }
-        return next(); // Explicitly return next() to ensure all code paths return a value
-    });
-};  
+
+        req.user = {
+            id: decoded.id,
+            role: decoded.role
+        };
+
+        next();
+    } catch (err) {
+        console.error('JWT verification error:', err);
+        res.status(HttpStatus.UNAUTHORIZED).json({
+            success: false,
+            message: 'Token expired or invalid',
+            status: HttpStatus.UNAUTHORIZED
+        });
+    }
+};
+
