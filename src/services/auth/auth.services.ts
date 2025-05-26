@@ -1,8 +1,8 @@
 import { OtpRequestDTO, OtpResendRequestDTO } from "../../dto/otp-verify.dto";
 import { SignupUserRequestDTO, SignupResponseDTO } from "../../dto/signup.dto";
 import { IUser } from "../../models/user.model";
-import { OtpRepository } from "../../repositories/otp.repository";
-import { UserRepository } from "../../repositories/user.repository";
+import { OtpRepository } from "../../repositories/otp/otp.repository";
+import { UserRepository } from "../../repositories/user/user.repository";
 import { TYPES } from "../../types/types";
 import { IAuthService } from "./auth.service.interface";
 import { OtpService } from "./otp.service";

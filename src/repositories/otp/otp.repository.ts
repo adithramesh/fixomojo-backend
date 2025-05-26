@@ -1,4 +1,4 @@
-import Otp,{ IOtp } from "../models/otp.model";
+import Otp,{ IOtp } from "../../models/otp.model";
 import { IOtpRepository } from "./otp.repository.interface";
 import { injectable } from "inversify";
 // import mongoose from "mongoose";

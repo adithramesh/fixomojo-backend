@@ -1,4 +1,3 @@
-
 export const TYPES={
     UserRepository  : Symbol.for("UserRepository"),
     OtpRepository : Symbol.for("OtpRepositiry"),
@@ -8,6 +7,7 @@ export const TYPES={
     AuthController : Symbol.for("AuthController"),
     AuthRoutes : Symbol.for("AuthRoutes"),
     ServiceRepository : Symbol.for("ServiceRepository"),
+    SubServiceRepository: Symbol.for("SubServiceRepository"),
     UserService : Symbol.for("UserService"),
     UserController : Symbol.for("UserController"),
     UserRoutes : Symbol.for("UserRoutes"),

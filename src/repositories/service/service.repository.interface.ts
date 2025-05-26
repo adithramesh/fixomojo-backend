@@ -1,4 +1,4 @@
-import { IService } from "../models/service.models";
+import { IService } from "../../models/service.models";
 
 export interface IServiceRepository {
     createService(serviceData:Partial<IService>):Promise<IService>

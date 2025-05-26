@@ -16,11 +16,17 @@ export class AdminRoutes {
     private initializeRoutes(){
         this.router.use(authMiddleware);
         this.router.post('/add-service',this._adminController.addService.bind(this._adminController))
+        this.router.post('/services/:id/sub-services',this._adminController.subService.bind(this._adminController))
         this.router.get('/user-management', (req, res) => this._adminController.getUsers(req, res))
         this.router.get('/service-management', (req, res) => this._adminController.getServices(req, res))
-        // this.router.patch('/users/:id/change-status',this._adminController.changeUserStatus.bind(this._adminController))
+        this.router.get('/sub-service-management', (req, res) => this._adminController.getSubServices(req, res))
+        this.router.get('/service/:id', (req, res) => this._adminController.getServiceById(req, res))
+        this.router.get('/sub-service/:id', (req, res) => this._adminController.getSubServiceById(req, res))
         this.router.patch('/users/:id/change-status',(req, res) => this._adminController.changeUserStatus(req, res))
         this.router.patch('/services/:id/change-status',this._adminController.changeServiceStatus.bind(this._adminController))
+        this.router.patch('/sub-services/:id/change-status',this._adminController.changeSubServiceStatus.bind(this._adminController))
+        this.router.put('/services/:id/update-service',this._adminController.updateService.bind(this._adminController))
+        this.router.put('/sub-services/:id/update-sub-service',this._adminController.updateSubService.bind(this._adminController))
     }
 
     public getRouter(){

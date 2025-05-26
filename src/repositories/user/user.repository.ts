@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
-import User, { IUser } from "../models/user.model";
-import { BaseRepository } from "./base.repository";
+import User, { IUser } from "../../models/user.model";
+import { BaseRepository } from "../base.repository";
 import { IUserRepository } from "./user.repository.interface";
 import { injectable } from "inversify";
 
