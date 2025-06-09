@@ -9,6 +9,7 @@ export interface IAdminService {
     getServiceById(serviceId:string):Promise<ServiceResponseDTO>
     getSubServiceById(subServiceId:string):Promise<SubServiceResponseDTO>
     changeUserStatus(userId:string, licenseStatus?:string):Promise<UserResponseDTO>
+    updateUser(userId:string, updateData:object):Promise<UserResponseDTO>
     changeServiceStatus(serviceId:string):Promise<ServiceResponseDTO>
     changeSubServiceStatus(serviceId:string):Promise<SubServiceResponseDTO>
     updateService(serviceId:string, serviceData:ServiceRequestDTO):Promise<ServiceResponseDTO>

@@ -71,8 +71,10 @@ export class AdminController implements IAdminController {
         sortBy: (req.query.sortBy as string) || 'serviceName',
         sortOrder: (req.query.sortOrder as string) || 'asc',
         searchTerm:(req.query.searchTerm as string) || '',
-        filter:{}
+        filter:  {}
       };
+      console.log("paginaton in getServices", pagination);
+      
       const response = await this._adminService.getServices(pagination);
       console.log("response",response);
       
@@ -91,15 +93,16 @@ export class AdminController implements IAdminController {
         sortBy: (req.query.sortBy as string) || 'subServiceName',
         sortOrder: (req.query.sortOrder as string) || 'asc',
         searchTerm: req.query.searchTerm as string || '',
-        filter: {}
+        filter:  {},
+        
         // {
         //   serviceId: req.query.serviceId ? { serviceId: req.query.serviceId as string } : {}
         // }
       };
-      const serviceId= req.query.serviceId as string
-      if(serviceId){
+      const serviceName= req.query.serviceName as string
+      if(serviceName){
         console.log("inside service id filter");
-        pagination.filter= {serviceId}
+        pagination.filter= {serviceName}
       }
       console.log('Received pagination:', pagination);
       const response = await this._adminService.getSubServices(pagination);
@@ -144,6 +147,27 @@ export class AdminController implements IAdminController {
     } catch (error) {
       console.log("error occured", error);
       res.status(HttpStatus.INTERNAL_SERVER_ERROR)
+    }
+  }
+
+  async updateUser(req: Request, res: Response<UserResponseDTO>): Promise<void> {
+     try {
+      const userId = req.params.id
+      const {address,latitude, longitude} = req.body
+       const updatePayload = {
+      location: {
+        address,
+        latitude,
+        longitude
+      }
+    };
+      console.log("updatePayload", updatePayload);
+      
+      const response = await this._adminService.updateUser(userId, updatePayload)
+      res.status(HttpStatus.SUCCESS).json(response);
+    } catch (error) {
+      console.log("error occured", error);
+        res.status(HttpStatus.INTERNAL_SERVER_ERROR)
     }
   }
 

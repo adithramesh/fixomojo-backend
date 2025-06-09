@@ -4,7 +4,9 @@ export interface PaginationRequestDTO {
   sortBy?: string;
   sortOrder?: string | "asc" | "desc";
   searchTerm?:string;
-  filter?: Record<string, unknown>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  filter?:any;
+  // filter?: Record<string, unknown>;
 }
 
 export interface PaginatedResponseDTO<T> {
@@ -64,5 +66,11 @@ export interface UserResponseDTO {
   licenseStatus?: string;
   role: string;
   createdAt?: string;
-  // Add other needed properties
+  location?: {
+    address?: string;
+    latitude: number;
+    longitude: number;
+  };
+  experience?:number;
+  rating?:number;
 }

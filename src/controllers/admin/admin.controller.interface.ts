@@ -10,6 +10,7 @@ export interface IAdminController {
     getServiceById(req:Request, res:Response<ServiceResponseDTO>):Promise<void>
     getSubServiceById(req:Request, res:Response<SubServiceResponseDTO>):Promise<void>
     changeUserStatus(req:Request, res:Response<UserResponseDTO>):Promise<void>
+    updateUser(req:Request, res:Response<UserResponseDTO>):Promise<void>
     changeServiceStatus(req:Request, res:Response<ServiceResponseDTO>):Promise<void>
     changeSubServiceStatus(req:Request, res:Response<SubServiceResponseDTO>):Promise<void>
     updateService(req:Request, res:Response<ServiceResponseDTO>):Promise<void>

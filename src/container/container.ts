@@ -15,6 +15,9 @@ import { AdminService } from '../services/admin/admin.service'
 import { AdminController } from '../controllers/admin/admin.controller'
 import { AdminRoutes } from '../routes/admin.routes'
 import { SubServiceRepository } from '../repositories/sub-service/sub-service.repository'
+import { TimeSlotController } from '../controllers/time-slot/time-slot.controller'
+import { PartnerRoutes } from '../routes/partner.routes'
+import { TimeSlotService } from '../services/time-slot/time-slot.service'
 
 
 const container = new Container()
@@ -34,5 +37,8 @@ container.bind<UserRoutes>(TYPES.UserRoutes).to(UserRoutes)
 container.bind<AdminService>(TYPES.AdminService).to(AdminService)
 container.bind<AdminController>(TYPES.AdminController).to(AdminController)
 container.bind<AdminRoutes>(TYPES.AdminRoutes).to(AdminRoutes)
+container.bind<PartnerRoutes>(TYPES.PartnerRoutes).to(PartnerRoutes);
+container.bind<TimeSlotController>(TYPES.TimeSlotController).to(TimeSlotController); 
+container.bind<TimeSlotService>(TYPES.TimeSlotService).to(TimeSlotService); 
 
 export default container;

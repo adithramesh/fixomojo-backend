@@ -27,6 +27,9 @@ export class AdminRoutes {
         this.router.patch('/sub-services/:id/change-status',this._adminController.changeSubServiceStatus.bind(this._adminController))
         this.router.put('/services/:id/update-service',this._adminController.updateService.bind(this._adminController))
         this.router.put('/sub-services/:id/update-sub-service',this._adminController.updateSubService.bind(this._adminController))
+
+        //location
+        this.router.patch('/partner/:id/location',this._adminController.updateUser.bind(this._adminController))
     }
 
     public getRouter(){

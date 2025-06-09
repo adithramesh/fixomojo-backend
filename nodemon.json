@@ -1,0 +1,7 @@
+{
+  "watch": ["src"],
+  "ext": "ts,json",
+  "ignore": ["node_modules"],
+  "delay": "500ms",
+  "exec": "ts-node src/server.ts"
+}

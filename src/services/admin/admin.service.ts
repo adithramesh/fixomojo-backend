@@ -10,6 +10,7 @@ import mongoose from "mongoose";
 import { IUser } from "../../models/user.model";
 import { SubServiceRepository } from "../../repositories/sub-service/sub-service.repository";
 
+
 @injectable()
 export class AdminService implements IAdminService {
     constructor(
@@ -99,6 +100,13 @@ export class AdminService implements IAdminService {
           status: user.status,
           licenseStatus:user.licenseStatus,
           role: user.role || '',
+          location: user.location ? {
+            address: user.location.address,
+            latitude: user.location.latitude,
+            longitude: user.location.longitude
+          } : undefined,
+          rating: user.rating || 4.5, 
+          experience: user.experience || 2,
           createdAt: user.createdAt ? user.createdAt.toISOString() : ''
         }));
         console.log("user DTO", userDTOs);
@@ -284,6 +292,38 @@ export class AdminService implements IAdminService {
         throw error;
       }
     }
+
+    async updateUser(userId: string, updateData: Partial<IUser>): Promise<UserResponseDTO> {
+      try {
+        const user = await this._userRepository.findUserById(userId)
+        if(!user){
+          throw new Error('Service not found to update'); 
+        }
+        console.log("update data in service", updateData);
+        
+        await this._userRepository.updateUser(userId, updateData)
+
+        const updatedUser = await this._userRepository.findUserById(userId)
+         if(!updatedUser){
+          throw new Error('Failed to retrieve updated service');
+        }
+        return {
+          id: (updatedUser._id as mongoose.Types.ObjectId).toString(),
+          username: updatedUser.username,
+          email:updatedUser.email,
+          phoneNumber:updatedUser.phoneNumber,
+          status: updatedUser.status,
+          role:updatedUser.role,
+          location:updatedUser.location,
+          createdAt: updatedUser.createdAt ? updatedUser.createdAt.toISOString() : '',
+        }
+
+      } catch (error) {
+        console.error("Error in updateSubService service:", error);
+        throw error;
+      }
+    }
+
     async changeServiceStatus(serviceId: string): Promise<ServiceResponseDTO> {
       try {
         const service: IService | null = await this._serviceRepository.findServiceById(serviceId);

@@ -4,6 +4,7 @@ import { IUserController } from "./user.controller.interface"
 import { inject, injectable } from "inversify";
 import { UserService } from "../../services/users/user.service";
 import { TYPES } from "../../types/types";
+import { HttpStatus } from "../../utils/http-status.enum";
 
 @injectable()
 export class UserController implements IUserController{
@@ -12,7 +13,7 @@ export class UserController implements IUserController{
     ){}
     async getHome( _req: Request,res: Response<HomeResponseDTO>): Promise<void> {
         const response = await this._userService.getHome()
-        res.status(200).json(response)
+        res.status(HttpStatus.SUCCESS).json(response)
     }
 
 }

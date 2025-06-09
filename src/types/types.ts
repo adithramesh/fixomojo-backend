@@ -13,5 +13,8 @@ export const TYPES={
     UserRoutes : Symbol.for("UserRoutes"),
     AdminService : Symbol.for("AdminService"),
     AdminController : Symbol.for("AdminController"),
-    AdminRoutes : Symbol.for("AdminRoutes")
+    AdminRoutes : Symbol.for("AdminRoutes"),
+    TimeSlotController : Symbol.for("TimeSlotController"),
+    TimeSlotService : Symbol.for("TimeSlotService"),
+    PartnerRoutes : Symbol.for("PartnerRoutes"),
 }
