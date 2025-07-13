@@ -16,6 +16,8 @@ export class UserRoutes {
     private initializeRoutes(){
         this.router.use(authMiddleware);
         this.router.get('/home',this._userController.getHome.bind(this._userController))
+        this.router.post('/book-service',this._userController.bookService.bind(this._userController))
+        this.router.get('/verify-payment',this._userController.verifyPayment.bind(this._userController))
     }
     public getRouter(){
         return this.router

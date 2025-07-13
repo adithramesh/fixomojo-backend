@@ -1,4 +1,4 @@
-import { IJob } from "../models/job.model";
+import { IJob } from "../../models/job.model";
 
 export interface IJobRepository {
     createJobDesignation(designation:string):Promise<IJob>

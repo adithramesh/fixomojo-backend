@@ -37,7 +37,7 @@ export const authMiddleware = async (req: AuthRequest, res: Response, next: Next
             return;
         }
 
-        if (user.status === 'blocked') {
+        if (user.status === 'blocked' || user.status === 'pending') {
             res.status(HttpStatus.UNAUTHORIZED).json({
                 success: false,
                 message: 'User is blocked',

@@ -1,6 +1,6 @@
 import { injectable } from "inversify";
 import { IJobRepository } from "./job.repository.interface";
-import Job,{ IJob } from "../models/job.model";
+import Job,{ IJob } from "../../models/job.model";
 
 @injectable()
 export class JobRepository implements IJobRepository {

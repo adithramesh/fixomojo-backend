@@ -1,8 +1,8 @@
 import { OtpRequestDTO, OtpResendRequestDTO } from "../../dto/otp-verify.dto";
 import { SignupUserRequestDTO, SignupResponseDTO } from "../../dto/signup.dto";
 import { IUser } from "../../models/user.model";
-import { OtpRepository } from "../../repositories/otp.repository";
-import { UserRepository } from "../../repositories/user.repository";
+import { OtpRepository } from "../../repositories/otp/otp.repository";
+import { UserRepository } from "../../repositories/user/user.repository";
 import { TYPES } from "../../types/types";
 import { IAuthService } from "./auth.service.interface";
 import { OtpService } from "./otp.service";
@@ -91,7 +91,7 @@ export class AuthService implements IAuthService {
         const storedOtp = await this._otpRepository.findOtpByUserId(tempUserId);
         console.log("storedOtp", storedOtp);
         
-        if (!storedOtp || storedOtp.otp !== otp || storedOtp.expiresAt < new Date()) {
+        if (!storedOtp || storedOtp.otp !== otp || storedOtp.expiresAt! < new Date()) {
             return { success: false, message: "Invalid or expired OTP", status: HttpStatus.BAD_REQUEST };
         }
 

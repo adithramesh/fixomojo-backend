@@ -6,5 +6,4 @@ export enum HttpStatus {
     NOT_FOUND = 404,
     INTERNAL_SERVER_ERROR = 500,
     CREATED=201,
-    // Add other relevant status codes as needed
 }
