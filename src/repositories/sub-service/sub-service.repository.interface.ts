@@ -1,10 +1,11 @@
+import { FilterQuery } from "mongoose";
 import { ISubService } from "../../models/sub-service.model";
 
-export interface IServiceRepository {
+export interface ISubServiceRepository {
     createSubService(serviceData:Partial<ISubService>):Promise<ISubService>
-    findAllSubServices():Promise<string[]>
-    findSubServiceById(id: string):Promise<ISubService | null>;
+    // findSubServiceById(id: string):Promise<ISubService | null>;
+    findById(id: string): Promise<ISubService | null>
     updateSubService(id:string, updateData:Partial<ISubService>): Promise<ISubService |null>
-    findSubServciesPaginated(skip: number,limit: number,sortBy: string,sortOrder: string,filter:Record<string, unknown>):Promise<ISubService[]>
+    findSubServicesPaginated(skip: number,limit: number,sortBy: string,sortOrder: string,filter: FilterQuery<ISubService>): Promise<ISubService[]>
     countSubServices(filter: Record<string, unknown>):Promise<number>
 }

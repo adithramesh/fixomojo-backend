@@ -1,8 +1,9 @@
 import mongoose, { FilterQuery } from 'mongoose';
 import SubService, { ISubService } from '../../models/sub-service.model';
 import { BaseRepository } from '../base.repository';
+import { ISubServiceRepository } from './sub-service.repository.interface';
 
-export class SubServiceRepository extends BaseRepository<ISubService> {
+export class SubServiceRepository extends BaseRepository<ISubService> implements ISubServiceRepository {
   constructor() {
     super(SubService)
   }

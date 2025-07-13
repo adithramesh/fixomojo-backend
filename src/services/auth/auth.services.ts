@@ -91,7 +91,7 @@ export class AuthService implements IAuthService {
         const storedOtp = await this._otpRepository.findOtpByUserId(tempUserId);
         console.log("storedOtp", storedOtp);
         
-        if (!storedOtp || storedOtp.otp !== otp || storedOtp.expiresAt < new Date()) {
+        if (!storedOtp || storedOtp.otp !== otp || storedOtp.expiresAt! < new Date()) {
             return { success: false, message: "Invalid or expired OTP", status: HttpStatus.BAD_REQUEST };
         }
 

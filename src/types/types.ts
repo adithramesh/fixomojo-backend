@@ -1,3 +1,4 @@
+
 export const TYPES={
     UserRepository  : Symbol.for("UserRepository"),
     OtpRepository : Symbol.for("OtpRepositiry"),
@@ -17,4 +18,16 @@ export const TYPES={
     TimeSlotController : Symbol.for("TimeSlotController"),
     TimeSlotService : Symbol.for("TimeSlotService"),
     PartnerRoutes : Symbol.for("PartnerRoutes"),
+    BookingRepository : Symbol.for("BookingRepository"),
+    BookingService : Symbol.for("BookingService"),
+    BookingController : Symbol.for("BookingController"),
+    BookingRoutes : Symbol.for("BookingRoutes"),
+    WalletRepository:Symbol.for("WalletRepository"),
+    WalletService:Symbol.for("WalletService"),
+    WalletController:Symbol.for("WalletController"),
+    WalletRoutes : Symbol.for("WalletRoutes"),
+    TransactionRepository: Symbol.for("TransactionRepository"),
+    TransactionService: Symbol.for("TransactionService"),
+    TransactionController: Symbol.for("TransactionController"),
+    TransactionRoutes: Symbol.for("TransactionRoutes")
 }

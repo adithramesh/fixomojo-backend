@@ -12,11 +12,16 @@ export class ServiceRepository extends BaseRepository<IService> implements IServ
         return  service
     }
 
-    async findAllServices(): Promise<string[]> {
-        const services = await this.find()
-        const serviceNames :string[]=services.map(service=>service.serviceName)
-        return serviceNames
-    }
+    // async findAllServices(): Promise<string[]> {
+    //     const services = await this.find()
+    //     const serviceNames :string[]=services.map(service=>service.serviceName)
+    //     return serviceNames
+    // }
+    //   async findAllServices(): Promise<IService> {
+    //     const services = await this.find()
+        
+    //     return services
+    // }
 
     async findServiceById(id: string): Promise<IService | null> {
         return await this.findById(id)

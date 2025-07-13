@@ -42,7 +42,8 @@ export class AdminService implements IAdminService {
     
     async createSubService(serviceId: string, subServiceData: SubServiceRequestDTO): Promise<SubServiceResponseDTO> {
     try {
-      // Validate parent Service exists
+      console.log("create sub-service, service layer, serviceId: ", serviceId);
+      console.log("create sub-service,service layer, subServiceData: ", subServiceData);
       const parentService = await this._serviceRepository.findById(serviceId);
       if (!parentService) {
         throw new Error('Service not found');
@@ -52,6 +53,7 @@ export class AdminService implements IAdminService {
       const subServiceDataWithServiceId = {
         ...subServiceData,
         serviceId: new mongoose.Types.ObjectId(serviceId),
+        // serviceId,
         serviceName:parentService.serviceName,
         status: subServiceData.status || 'active' // Default status
       };
@@ -63,6 +65,7 @@ export class AdminService implements IAdminService {
         id: (createdSubService._id as mongoose.Types.ObjectId).toString(),
         subServiceName: createdSubService.subServiceName,
         serviceId: createdSubService.serviceId.toString(),
+        // serviceId: createdSubService.serviceId,
         serviceName: createdSubService.serviceName,
         price: createdSubService.price,
         description: createdSubService.description,
@@ -135,6 +138,10 @@ export class AdminService implements IAdminService {
           { 'subServices.subServiceName': { $regex: searchTerm, $options: 'i' } }
         ];
         }
+
+
+        console.log("filter", filter);
+        
         const services = await this._serviceRepository.findServciesPaginated(skip,pageSize,sortBy?sortBy:'', sortOrder?sortOrder:'',filter?filter:{})
         const totalServices = await this._serviceRepository.countServices(filter)
 
@@ -168,11 +175,13 @@ export class AdminService implements IAdminService {
         filter.subServiceName = { $regex: searchTerm, $options: 'i' };
       }
 
-      // if (filter.serviceId) {
-      //   filter.serviceId = new mongoose.Types.ObjectId(filter.serviceId);
-      // }
+      if (filter.serviceId) {
+        filter.serviceId = new mongoose.Types.ObjectId(filter.serviceId);
+      }
 
-      console.log('Filter applied:', filter);
+      
+
+      console.log('Filter applied1:', filter);
 
       const subServices = await this._subServiceRepository.findSubServicesPaginated(
         skip,
@@ -181,12 +190,18 @@ export class AdminService implements IAdminService {
         sortOrder || 'asc',
         filter
       );
+      if(subServices){
+        console.log("subServices",subServices);
+      }else{
+        console.log("repo failed");
+      }
       const totalSubServices = await this._subServiceRepository.countSubServices(filter);
 
       const subServiceDTOs: SubServiceResponseDTO[] = subServices.map(subService => ({
         id: (subService._id as mongoose.Types.ObjectId).toString(),
         subServiceName: subService.subServiceName,
-        serviceId: subService.serviceId.toString(),
+        // serviceId: subService.serviceId.toString(),
+        serviceId: subService.serviceId ? subService.serviceId._id.toString() : '',
         serviceName: subService.serviceName || '', // Populated from Service
         image: subService.image || '',
         description: subService.description || '',
@@ -217,6 +232,7 @@ export class AdminService implements IAdminService {
       return {
         serviceName:service?.serviceName ,
         description:service?.description,
+        image:service?.image,
         status:service?.status
       }
     } catch (error) {
@@ -228,13 +244,18 @@ export class AdminService implements IAdminService {
   async getSubServiceById(subServiceId:string):Promise<SubServiceResponseDTO>{
     try {
       const subService = await this._subServiceRepository.findById(subServiceId)
+      console.log("subService: ", subService);
+      
       if (!subService) {
       throw new Error(`Sub-service with ID ${subServiceId} not found`);
       }
       return {
-        id:subService.id,
+        id:(subService._id as mongoose.Types.ObjectId).toString(),
+        serviceId:(subService.serviceId._id as mongoose.Types.ObjectId).toString(),
+        // serviceName: subService.serviceId.serviceName,
         subServiceName:subService?.subServiceName,
         description:subService?.description,
+        image:subService?.image,
         price:subService?.price,
         status:subService.status
       }
@@ -394,6 +415,7 @@ export class AdminService implements IAdminService {
           id: (updatedService._id as mongoose.Types.ObjectId).toString(),
           serviceName: updatedService.serviceName,
           status: updatedService.status,
+          image:updatedService.image,
           createdAt: updatedService.createdAt ? updatedService.createdAt.toISOString() : '',
         }
 
@@ -406,6 +428,8 @@ export class AdminService implements IAdminService {
     async updateSubService(subServiceId:string, subServiceData:SubServiceRequestDTO):Promise<SubServiceResponseDTO>{
       try {
         const subService = await this._subServiceRepository.findById(subServiceId)
+        console.log("update sub-service, service layer, serviceId: ", subServiceId);
+        console.log("update sub-service,service layer, subServiceData: ", subServiceData);
         if(!subService){
           throw new Error('Sub-service not found to update'); 
         }
@@ -414,6 +438,8 @@ export class AdminService implements IAdminService {
         await this._subServiceRepository.updateSubService(subServiceId, subServiceData)
 
         const updatedSubService = await this._subServiceRepository.findById(subServiceId)
+        console.log("updatedSubService", updatedSubService);
+        
          if(!updatedSubService){
           throw new Error('Failed to retrieve updated service');
         }
@@ -421,11 +447,23 @@ export class AdminService implements IAdminService {
           id: (updatedSubService._id as mongoose.Types.ObjectId).toString(),
           subServiceName: updatedSubService.serviceName,
           status: updatedSubService.status,
+          image:updatedSubService.image,
           createdAt: updatedSubService.createdAt ? updatedSubService.createdAt.toISOString() : '',
         }
 
       } catch (error) {
         console.error("Error in updateSubService service:", error);
+        throw error;
+      }
+    }
+
+    async savedLocation(userId: string): Promise<string | undefined> {
+      try {
+        const result = await this._userRepository.findById(userId)
+        return result?.location?.address || ''
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } catch (error:any) {
+        console.error("Error in saved location service:", error);
         throw error;
       }
     }

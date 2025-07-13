@@ -2,24 +2,25 @@ import mongoose, {Schema, Document} from "mongoose"
 
 export interface IBooking extends Document {
     userId:string;
+    username?:string;
     subServiceId:string;
-    address: {
-        addressLine1?: string;
-        city?: string;
-        state?: string;
-        zipCode?: string;
+    subServiceName:string;
+    location: {
+        address: string;
         latitude: number;
         longitude: number;
     };
     technicianId:string;
-    // timeSlot: string;  
-    googleCalendarId: string;  
-    googleEventId: string; 
-    amount:number;
-    paymentMethod:"Cash" | "On  line" | "Wallet";
-    bookingStatus: "Pending" | "Confirmed" | "Cancelled"| "Completed";
+    googleCalendarId?: string;  
+    googleEventId?: string; 
+    totalAmount:number;
+    paymentMethod:"Cash" | "Card" | "Wallet";
+    bookingStatus: "Hold" |"Pending" | "Confirmed" | "Cancelled"| "Completed" | "Failed";
     paymentStatus: "Pending" | "Success" | "Failed";
-    isCompleted:boolean;
+    isCompleted?:boolean;
+    // stripePaymentIntentId?: string
+    timeSlotStart?: Date | null; 
+    timeSlotEnd?: Date | null; 
     createdAt: Date;
     updatedAt: Date;
 }   
@@ -27,24 +28,26 @@ export interface IBooking extends Document {
 
 const bookingSchema:Schema = new Schema({
     userId:{type:String, required:true},
+    username:{type:String, required:false},
     subServiceId:{type:String, required:true},
-    address: {
-        addressLine1: { type: String, required: true },
-        city: { type: String, required: true },
-        state: { type: String, required: true },
-        zipCode: { type: String, required: true },
+    subServiceName:{type:String, required:true},
+    location: {
+        address: { type: String, required: true },
         latitude: { type: Number, required: true },
         longitude: { type: Number, required: true }
     },
     technicianId:{type:String, required:true},
     // timeSlot: { type: Schema.Types.ObjectId, ref: 'TimeSlots', required: true },
-    googleCalendarId: { type:String, required: true },
-    googleEventId: {type:String, required: true},
-    amount: { type: Number, required: true, min: 0 },
-    paymentMethod: { type: String, required: true, enum: ["Cash", "Online", "Wallet"] },
-    bookingStatus: { type: String, required: true, enum: ["Pending", "Confirmed", "Cancelled", "Completed"], default: "Pending" },
+    googleCalendarId: { type:String, required: false },
+    googleEventId: {type:String, required: false},
+    totalAmount: { type: Number, required: true, min: 0 },
+    paymentMethod: { type: String, required: true, enum: ["Cash", "Card", "Wallet"] },
+    bookingStatus: { type: String, required: true, enum: ["Hold","Pending", "Confirmed", "Cancelled", "Completed", "Failed"], default: "Pending" },
     paymentStatus: { type: String, required: true, enum: ["Pending", "Success", "Failed"], default: "Pending" },
     isCompleted:{ type: Boolean, default: false },
+    timeSlotStart: { type: Date, required: false, default: null },
+    timeSlotEnd: { type: Date, required: false, default: null },
+    // stripePaymentIntentId: { type: String},
 },
 { timestamps: true } 
 )

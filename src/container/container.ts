@@ -18,6 +18,18 @@ import { SubServiceRepository } from '../repositories/sub-service/sub-service.re
 import { TimeSlotController } from '../controllers/time-slot/time-slot.controller'
 import { PartnerRoutes } from '../routes/partner.routes'
 import { TimeSlotService } from '../services/time-slot/time-slot.service'
+import { BookingRepository } from '../repositories/booking/booking.repository'
+import { WalletRepository } from '../repositories/wallet/wallet.repository'
+import { WalletService } from '../services/wallet/wallet.service'
+import { WalletController } from '../controllers/wallet/wallet.controller'
+import { WalletRoutes } from '../routes/wallet.routes'
+import { TransactionRepository } from '../repositories/transaction/transaction.repository'
+import { TransactionService } from '../services/transaction/transaction.service'
+import { TransactionController } from '../controllers/transaction/transaction.controller'
+import { TransactionRoutes } from '../routes/transactionRoutes'
+import { BookingController } from '../controllers/booking/booking.controller'
+import { BookingService } from '../services/booking/booking.service'
+import { BookingRoutes } from '../routes/booking.routes'
 
 
 const container = new Container()
@@ -40,5 +52,17 @@ container.bind<AdminRoutes>(TYPES.AdminRoutes).to(AdminRoutes)
 container.bind<PartnerRoutes>(TYPES.PartnerRoutes).to(PartnerRoutes);
 container.bind<TimeSlotController>(TYPES.TimeSlotController).to(TimeSlotController); 
 container.bind<TimeSlotService>(TYPES.TimeSlotService).to(TimeSlotService); 
+container.bind<BookingRepository>(TYPES.BookingRepository).to(BookingRepository)
+container.bind<BookingService>(TYPES.BookingService).to(BookingService)
+container.bind<BookingController>(TYPES.BookingController).to(BookingController)
+container.bind<BookingRoutes>(TYPES.BookingRoutes).to(BookingRoutes)
+container.bind<WalletRepository>(TYPES.WalletRepository).to(WalletRepository)
+container.bind<WalletService>(TYPES.WalletService).to(WalletService)
+container.bind<WalletController>(TYPES.WalletController).to(WalletController)
+container.bind<WalletRoutes>(TYPES.WalletRoutes).to(WalletRoutes)
+container.bind<TransactionRepository>(TYPES.TransactionRepository).to(TransactionRepository)
+container.bind<TransactionService>(TYPES.TransactionService).to(TransactionService)
+container.bind<TransactionController>(TYPES.TransactionController).to(TransactionController)
+container.bind<TransactionRoutes>(TYPES.TransactionRoutes).to(TransactionRoutes)
 
 export default container;

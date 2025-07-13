@@ -14,4 +14,5 @@ export interface IAdminService {
     changeSubServiceStatus(serviceId:string):Promise<SubServiceResponseDTO>
     updateService(serviceId:string, serviceData:ServiceRequestDTO):Promise<ServiceResponseDTO>
     updateSubService(subServiceId:string, subServiceData:SubServiceRequestDTO):Promise<SubServiceResponseDTO>
+    savedLocation(userId:string):Promise<string | undefined>
 }

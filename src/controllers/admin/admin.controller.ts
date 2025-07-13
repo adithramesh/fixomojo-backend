@@ -1,10 +1,14 @@
 import { Request, Response } from "express";
-import { PaginatedResponseDTO, PaginationRequestDTO, ServiceRequestDTO, ServiceResponseDTO, SubServiceResponseDTO, UserResponseDTO } from "../../dto/admin.dto";
+import { PaginatedResponseDTO, PaginationRequestDTO, ServiceRequestDTO, ServiceResponseDTO, SubServiceRequestDTO, SubServiceResponseDTO, UserResponseDTO } from "../../dto/admin.dto";
 import { IAdminController } from "./admin.controller.interface";
 import { inject, injectable } from "inversify";
 import { AdminService } from "../../services/admin/admin.service";
 import { TYPES } from "../../types/types";
 import { HttpStatus } from "../../utils/http-status.enum";
+import { uploadToCloudinary } from "../../utils/cloudinary.uploader";
+import mongoose from "mongoose";
+import { AuthRequest } from "../../middlewares/auth.middleware";
+type EmptyParams = Record<string, never>;
 
 @injectable()
 export class AdminController implements IAdminController {
@@ -12,11 +16,17 @@ export class AdminController implements IAdminController {
     @inject(TYPES.AdminService) private _adminService: AdminService
   ) {}
   async addService(
-    req: Request<ServiceRequestDTO>,
+    req: Request<EmptyParams, object, ServiceRequestDTO>,
     res: Response<ServiceResponseDTO>
   ): Promise<void> {
     try {
       const serviceData = req.body;
+      if (req.file) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const uploadResult:any = await uploadToCloudinary(req.file.buffer, 'services');
+        // serviceData.image = uploadResult.secure_url;
+        serviceData.image = uploadResult.public_id;
+      }
       console.log("serviceData",serviceData);
       const response = await this._adminService.createService(serviceData);
       res.status(HttpStatus.CREATED).json(response);
@@ -26,13 +36,20 @@ export class AdminController implements IAdminController {
     }
   }
 
-  async subService(req: Request, res: Response<SubServiceResponseDTO>): Promise<void> {
+  async subService(req: Request<EmptyParams, object, SubServiceRequestDTO>, res: Response<SubServiceResponseDTO>): Promise<void> {
     try {
       const subServiceData= req.body;
-      const serviceId = req.params.id;
-      console.log("subServiceData", subServiceData);
-      
-      const response = await this._adminService.createSubService(serviceId, subServiceData)
+      const serviceId = subServiceData.serviceId;
+      if (req.file) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const uploadResult:any = await uploadToCloudinary(req.file.buffer, 'sub-services');
+        // subServiceData.image = uploadResult.secure_url;
+        subServiceData.image = uploadResult.public_id
+      }
+      console.log("create sub-service,controller layer, serviceId: ", serviceId);
+      console.log("create sub-service, controller layer, subServiceData: ", subServiceData);
+
+      const response = await this._adminService.createSubService(serviceId!, subServiceData)
       res.status(HttpStatus.CREATED).json(response);
     } catch (error) {
         console.log("error occured", error);
@@ -71,7 +88,7 @@ export class AdminController implements IAdminController {
         sortBy: (req.query.sortBy as string) || 'serviceName',
         sortOrder: (req.query.sortOrder as string) || 'asc',
         searchTerm:(req.query.searchTerm as string) || '',
-        filter:  {}
+        filter: {}
       };
       console.log("paginaton in getServices", pagination);
       
@@ -95,11 +112,22 @@ export class AdminController implements IAdminController {
         searchTerm: req.query.searchTerm as string || '',
         filter:  {},
         
+        
         // {
         //   serviceId: req.query.serviceId ? { serviceId: req.query.serviceId as string } : {}
         // }
       };
-      const serviceName= req.query.serviceName as string
+      if (req.query.serviceId) {
+            // pagination.filter.serviceId = req.query.serviceId as string;
+            const serviceId = req.query.serviceId as string;
+            if (mongoose.Types.ObjectId.isValid(serviceId)) {
+                pagination.filter.serviceId = serviceId;
+            } else {
+              console.log('Invalid serviceId format in get subservice controller');
+               res.status(HttpStatus.BAD_REQUEST);
+            }
+        }
+    const serviceName= req.query.serviceName as string
       if(serviceName){
         console.log("inside service id filter");
         pagination.filter= {serviceName}
@@ -196,10 +224,16 @@ export class AdminController implements IAdminController {
     }
   }
 
-  async updateService(req:Request, res:Response<ServiceResponseDTO>):Promise<void>{
+  async updateService(req:Request<EmptyParams, object, ServiceRequestDTO>, res:Response<ServiceResponseDTO>):Promise<void>{
      try {
       const serviceId = req.params.id
       const serviceData = req.body
+      // console.log("update service,req.params, req.body, req.file: ",req.params, req.body, req.file);
+       if (req.file) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const uploadResult:any = await uploadToCloudinary(req.file.buffer, 'services');
+        serviceData.image = uploadResult.public_id;
+      }
       const response = await this._adminService.updateService(serviceId, serviceData)
       res.status(HttpStatus.SUCCESS).json(response);
     } catch (error) {
@@ -209,15 +243,35 @@ export class AdminController implements IAdminController {
   }
 
 
-  async updateSubService(req:Request, res:Response<SubServiceResponseDTO>):Promise<void>{
+  async updateSubService(req:Request<EmptyParams, object, SubServiceRequestDTO>, res:Response<SubServiceResponseDTO>):Promise<void>{
     try {
-      const subServiceId = req.params.id
+      const subServiceId = req.params.id 
       const subServiceData = req.body
+      console.log("Update Sub Service controller ");
+      console.log("req.params:", req.params);
+      console.log("req.body:", req.body);
+      console.log("req.file:", req.file);
+      if (req.file) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const uploadResult:any = await uploadToCloudinary(req.file.buffer, 'sub-services');
+        subServiceData.image = uploadResult.public_id;
+      }
       const response = await this._adminService.updateSubService(subServiceId, subServiceData)
       res.status(HttpStatus.SUCCESS).json(response);
     } catch (error) {
       console.log("error occured", error);
         res.status(HttpStatus.INTERNAL_SERVER_ERROR)
+    }
+  }
+
+  async savedLocation(req: AuthRequest, res: Response<string>): Promise<void> {
+    try {
+      const userId = req.user?.id.toString() ||""
+      const response = await this._adminService.savedLocation(userId)
+      res.status(HttpStatus.SUCCESS).json(response)
+    } catch (error) {
+      console.log("error occured", error);
+      res.status(HttpStatus.INTERNAL_SERVER_ERROR)
     }
   }
 }

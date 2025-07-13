@@ -1,9 +1,12 @@
+// import mongoose from "mongoose";
+
 export interface PaginationRequestDTO {
   page: number;
   pageSize: number;
   sortBy?: string;
   sortOrder?: string | "asc" | "desc";
   searchTerm?:string;
+  status?:string;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   filter?:any;
   // filter?: Record<string, unknown>;
@@ -29,14 +32,14 @@ export interface ServiceResponseDTO {
   serviceName: string;
   image?: string;
   description?: string;
-  // subServices?: SubServiceResponseDTO[];
   status?: string;
   createdAt?: string;
   updatedAt?:string;
+  message?:string;
 }
 
 export interface SubServiceRequestDTO {
-  serviceId:string;
+  serviceId?:string;
   subServiceName: string;
   price: number;
   description?: string;
