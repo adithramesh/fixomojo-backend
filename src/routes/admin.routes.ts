@@ -1,15 +1,15 @@
 import { Router } from 'express'
 import { inject, injectable } from 'inversify'
 import { TYPES } from '../types/types'
-import { AdminController } from '../controllers/admin/admin.controller'
 import { authMiddleware } from '../middlewares/auth.middleware'
 import { upload } from '../../src/config/multer.config'
+import { IAdminController } from '../controllers/admin/admin.controller.interface'
 
 @injectable()
 export class AdminRoutes {
     private router : Router
     constructor(
-        @inject(TYPES.AdminController) private _adminController : AdminController
+        @inject(TYPES.IAdminController) private _adminController : IAdminController
     ){
         this.router=Router()
         this.initializeRoutes()

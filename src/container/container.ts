@@ -2,8 +2,8 @@ import { Container } from 'inversify'
 import { TYPES } from '../types/types'
 import { UserRepository } from '../repositories/user/user.repository'
 import { OtpRepository } from '../repositories/otp/otp.repository'
-import { OtpService } from '../services/auth/otp.service'
-import { PasswordService } from '../services/auth/password.service'
+import { IOtpService, OtpService } from '../../src/services/auth/otp.service'
+import { IPasswordService, PasswordService } from '../services/auth/password.service'
 import { AuthService } from '../services/auth/auth.services'
 import { AuthController } from '../controllers/auth/auth.controller'
 import { AuthRoutes } from '../routes/auth.routes'
@@ -30,39 +30,70 @@ import { TransactionRoutes } from '../routes/transactionRoutes'
 import { BookingController } from '../controllers/booking/booking.controller'
 import { BookingService } from '../services/booking/booking.service'
 import { BookingRoutes } from '../routes/booking.routes'
+import { ITransactionController } from '../controllers/transaction/transaction.controller.interface'
+import { ITransactionRepository } from '../repositories/transaction/transaction.repository.interface'
+import { ITransactionService } from '../services/transaction/transaction.service.interface'
+import { IWalletController } from '../controllers/wallet/wallet.controller.interface'
+import { IWalletRepository } from '../repositories/wallet/wallet.repository.interface'
+import { IWalletService } from '../services/wallet/wallet.service.interface'
+import { IBookingRepository } from '../repositories/booking/booking.repository.interface'
+import { IBookingService } from '../services/booking/booking.service.interface'
+import { IBookingController } from '../controllers/booking/booking.controller.interface'
+import { ITimeSlotController } from '../controllers/time-slot/time-slot.controller.interface'
+import { ITimeSlotService } from '../services/time-slot/time-slot.service.interface'
+import { IServiceRepository } from '../repositories/service/service.repository.interface'
+import { ISubServiceRepository } from '../repositories/sub-service/sub-service.repository.interface'
+import { IAdminService } from '../services/admin/admin.service.interface'
+import { IAdminController } from '../controllers/admin/admin.controller.interface'
+import { IUserController } from '../controllers/users/user.controller.interface'
+import { IUserService } from '../services/users/user.service.interface'
+import { IUserRepository } from '../repositories/user/user.repository.interface'
+import { IAuthController } from '../controllers/auth/auth.controller.interface'
+import { IAuthService } from '../services/auth/auth.service.interface'
+import { IOtpRepository } from '../repositories/otp/otp.repository.interface'
 
 
 const container = new Container()
 
-container.bind<UserRepository>(TYPES.UserRepository).to(UserRepository)
-container.bind<OtpRepository>(TYPES.OtpRepository).to(OtpRepository)
-container.bind<OtpService>(TYPES.OtpService).to(OtpService)
-container.bind<PasswordService>(TYPES.PasswordService).to(PasswordService)
-container.bind<AuthService>(TYPES.AuthService).to(AuthService)
-container.bind<AuthController>(TYPES.AuthController).to(AuthController)
+container.bind<IPasswordService>(TYPES.IPasswordService).to(PasswordService)
+
+container.bind<IOtpService>(TYPES.IOtpService).to(OtpService)
+container.bind<IOtpRepository>(TYPES.IOtpRepository).to(OtpRepository)
+
+container.bind<IAuthController>(TYPES.IAuthController).to(AuthController)
+container.bind<IAuthService>(TYPES.IAuthService).to(AuthService)
 container.bind<AuthRoutes>(TYPES.AuthRoutes).to(AuthRoutes)
-container.bind<ServiceRepository>(TYPES.ServiceRepository).to(ServiceRepository)
-container.bind<SubServiceRepository>(TYPES.SubServiceRepository).to(SubServiceRepository)
-container.bind<UserService>(TYPES.UserService).to(UserService)
-container.bind<UserController>(TYPES.UserController).to(UserController)
+
+container.bind<IUserRepository>(TYPES.IUserRepository).to(UserRepository)
+container.bind<IUserService>(TYPES.IUserService).to(UserService)
+container.bind<IUserController>(TYPES.IUserController).to(UserController)
 container.bind<UserRoutes>(TYPES.UserRoutes).to(UserRoutes)
-container.bind<AdminService>(TYPES.AdminService).to(AdminService)
-container.bind<AdminController>(TYPES.AdminController).to(AdminController)
+
+container.bind<IAdminService>(TYPES.IAdminService).to(AdminService)
+container.bind<IAdminController>(TYPES.IAdminController).to(AdminController)
 container.bind<AdminRoutes>(TYPES.AdminRoutes).to(AdminRoutes)
+
 container.bind<PartnerRoutes>(TYPES.PartnerRoutes).to(PartnerRoutes);
-container.bind<TimeSlotController>(TYPES.TimeSlotController).to(TimeSlotController); 
-container.bind<TimeSlotService>(TYPES.TimeSlotService).to(TimeSlotService); 
-container.bind<BookingRepository>(TYPES.BookingRepository).to(BookingRepository)
-container.bind<BookingService>(TYPES.BookingService).to(BookingService)
-container.bind<BookingController>(TYPES.BookingController).to(BookingController)
+
+container.bind<IServiceRepository>(TYPES.IServiceRepository).to(ServiceRepository)
+container.bind<ISubServiceRepository>(TYPES.ISubServiceRepository).to(SubServiceRepository)
+
+container.bind<ITimeSlotController>(TYPES.ITimeSlotController).to(TimeSlotController); 
+container.bind<ITimeSlotService>(TYPES.ITimeSlotService).to(TimeSlotService); 
+
+container.bind<IBookingRepository>(TYPES.IBookingRepository).to(BookingRepository)
+container.bind<IBookingService>(TYPES.IBookingService).to(BookingService)
+container.bind<IBookingController>(TYPES.IBookingController).to(BookingController)
 container.bind<BookingRoutes>(TYPES.BookingRoutes).to(BookingRoutes)
-container.bind<WalletRepository>(TYPES.WalletRepository).to(WalletRepository)
-container.bind<WalletService>(TYPES.WalletService).to(WalletService)
-container.bind<WalletController>(TYPES.WalletController).to(WalletController)
+
+container.bind<IWalletRepository>(TYPES.IWalletRepository).to(WalletRepository)
+container.bind<IWalletService>(TYPES.IWalletService).to(WalletService)
+container.bind<IWalletController>(TYPES.IWalletController).to(WalletController)
 container.bind<WalletRoutes>(TYPES.WalletRoutes).to(WalletRoutes)
-container.bind<TransactionRepository>(TYPES.TransactionRepository).to(TransactionRepository)
-container.bind<TransactionService>(TYPES.TransactionService).to(TransactionService)
-container.bind<TransactionController>(TYPES.TransactionController).to(TransactionController)
+
+container.bind<ITransactionRepository>(TYPES.ITransactionRepository).to(TransactionRepository)
+container.bind<ITransactionService>(TYPES.ITransactionService).to(TransactionService)
+container.bind<ITransactionController>(TYPES.ITransactionController).to(TransactionController)
 container.bind<TransactionRoutes>(TYPES.TransactionRoutes).to(TransactionRoutes)
 
 export default container;

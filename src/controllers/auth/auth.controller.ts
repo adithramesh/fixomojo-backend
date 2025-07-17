@@ -1,18 +1,18 @@
 import { inject, injectable } from "inversify";
 import { TYPES } from "../../types/types";
 import { IAuthController } from "./auth.controller.interface";
-import { AuthService } from "../../services/auth/auth.services";
 import { SignupResponseDTO, SignupUserRequestDTO } from "../../dto/signup.dto";
 import { Request, Response } from "express";
 import { OtpRequestDTO, OtpResendRequestDTO } from "../../dto/otp-verify.dto";
 import { LoginRequestDTO } from "../../dto/login.dto";
 import { ForgotPasswordRequestDTO, ResetPasswordRequestDTO } from "../../dto/password.dto";
 import { HttpStatus } from "../../utils/http-status.enum";
+import { IAuthService } from "../../services/auth/auth.service.interface";
 
 @injectable()
 export class AuthController implements IAuthController {
 constructor(
-        @inject(TYPES.AuthService) private _authService:AuthService
+        @inject(TYPES.IAuthService) private _authService:IAuthService
     ){}
 
     async signup(req: Request<SignupUserRequestDTO>, res:Response<SignupResponseDTO>):Promise<void>{

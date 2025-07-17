@@ -1,7 +1,7 @@
 import { Router } from 'express'
-import { AuthController } from '../controllers/auth/auth.controller'
 import { inject, injectable } from 'inversify'
 import { TYPES } from '../types/types'
+import { IAuthController } from '../controllers/auth/auth.controller.interface'
 
 
 
@@ -9,7 +9,7 @@ import { TYPES } from '../types/types'
 export class AuthRoutes{
     private router:Router
     constructor(
-        @inject(TYPES.AuthController) private _authController:AuthController
+        @inject(TYPES.IAuthController) private _authController:IAuthController
     ){
         this.router=Router()
         this.initializeRoutes()

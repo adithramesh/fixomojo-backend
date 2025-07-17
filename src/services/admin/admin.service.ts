@@ -1,22 +1,22 @@
 import { inject, injectable } from "inversify";
 import { PaginatedResponseDTO, PaginationRequestDTO, ServiceRequestDTO, ServiceResponseDTO, SubServiceRequestDTO, SubServiceResponseDTO, UserResponseDTO } from "../../dto/admin.dto";
 import { IAdminService } from "./admin.service.interface";
-import { ServiceRepository } from "../../repositories/service/service.repository";
 import { TYPES } from "../../types/types";
 import { IService} from "../../models/service.models";
 import { ISubService } from "../../models/sub-service.model";
-import { UserRepository } from "../../repositories/user/user.repository";
 import mongoose from "mongoose";
 import { IUser } from "../../models/user.model";
-import { SubServiceRepository } from "../../repositories/sub-service/sub-service.repository";
+import { IServiceRepository } from "../../repositories/service/service.repository.interface";
+import { ISubServiceRepository } from "../../repositories/sub-service/sub-service.repository.interface";
+import { IUserRepository } from "../../repositories/user/user.repository.interface";
 
 
 @injectable()
 export class AdminService implements IAdminService {
     constructor(
-        @inject(TYPES.ServiceRepository) private _serviceRepository:ServiceRepository,
-        @inject(TYPES.UserRepository) private _userRepository:UserRepository,
-        @inject(TYPES.SubServiceRepository) private _subServiceRepository:SubServiceRepository
+        @inject(TYPES.IServiceRepository) private _serviceRepository:IServiceRepository,
+        @inject(TYPES.IUserRepository) private _userRepository:IUserRepository,
+        @inject(TYPES.ISubServiceRepository) private _subServiceRepository:ISubServiceRepository
     ){}
     async createService(serviceData: ServiceRequestDTO): Promise<ServiceResponseDTO> {
         const { serviceName, image, description } = serviceData;
@@ -44,7 +44,7 @@ export class AdminService implements IAdminService {
     try {
       console.log("create sub-service, service layer, serviceId: ", serviceId);
       console.log("create sub-service,service layer, subServiceData: ", subServiceData);
-      const parentService = await this._serviceRepository.findById(serviceId);
+      const parentService = await this._serviceRepository.findServiceById(serviceId);
       if (!parentService) {
         throw new Error('Service not found');
       }
@@ -58,7 +58,7 @@ export class AdminService implements IAdminService {
         status: subServiceData.status || 'active' // Default status
       };
 
-      const createdSubService:ISubService = await this._subServiceRepository.create(subServiceDataWithServiceId);
+      const createdSubService:ISubService = await this._subServiceRepository.createSubService(subServiceDataWithServiceId);
 
       // Return SubServiceResponseDTO
       return {
@@ -459,7 +459,7 @@ export class AdminService implements IAdminService {
 
     async savedLocation(userId: string): Promise<string | undefined> {
       try {
-        const result = await this._userRepository.findById(userId)
+        const result = await this._userRepository.findUserById(userId)
         return result?.location?.address || ''
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (error:any) {

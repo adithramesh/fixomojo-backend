@@ -1,22 +1,20 @@
 import { inject, injectable } from "inversify";
 import { IWalletController } from "./wallet.controller.interface";
 import { Response } from "express";
-import { WalletService } from "../../services/wallet/wallet.service";
 import { TYPES } from "../../types/types";
 import { AuthRequest } from "../../middlewares/auth.middleware";
 import { HttpStatus } from "../../utils/http-status.enum";
+import { IWalletService } from "../../services/wallet/wallet.service.interface";
 
 @injectable()
 export class WalletController implements IWalletController{
     constructor(
-        @inject(TYPES.WalletService) private _walletService: WalletService
+        @inject(TYPES.IWalletService) private _walletService: IWalletService
     ){}
 
     async getWallet(req: AuthRequest, res: Response): Promise<void> {
        try {
             const userId = req.user?.id.toString() || ''
-            // const role = req.user?.role
-            // const referenceId  = req.query.referenceId
             const wallet= await this._walletService.getWallet(userId)
             res.status(HttpStatus.SUCCESS).json(wallet)
        // eslint-disable-next-line @typescript-eslint/no-explicit-any

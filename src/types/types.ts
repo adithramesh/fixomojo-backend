@@ -1,33 +1,47 @@
 
 export const TYPES={
-    UserRepository  : Symbol.for("UserRepository"),
-    OtpRepository : Symbol.for("OtpRepositiry"),
-    PasswordService : Symbol.for("PassWordService"),
-    OtpService : Symbol.for("OtpService"),
-    AuthService : Symbol.for("AuthService"),
-    AuthController : Symbol.for("AuthController"),
+    
+    IPasswordService : Symbol.for("IPassWordService"),
+    
+    IOtpService : Symbol.for("IOtpService"),
+    IOtpRepository : Symbol.for("IOtpRepository"),
+
+    IAuthService : Symbol.for("IAuthService"),
+    IAuthController : Symbol.for("IAuthController"),
     AuthRoutes : Symbol.for("AuthRoutes"),
-    ServiceRepository : Symbol.for("ServiceRepository"),
-    SubServiceRepository: Symbol.for("SubServiceRepository"),
-    UserService : Symbol.for("UserService"),
-    UserController : Symbol.for("UserController"),
+
+    IUserRepository  : Symbol.for("IUserRepository"),
+    IUserService : Symbol.for("IUserService"),
+    IUserController : Symbol.for("IUserController"),
     UserRoutes : Symbol.for("UserRoutes"),
-    AdminService : Symbol.for("AdminService"),
-    AdminController : Symbol.for("AdminController"),
+    
+    IAdminService : Symbol.for("IAdminService"),
+    IAdminController : Symbol.for("IAdminController"),
     AdminRoutes : Symbol.for("AdminRoutes"),
-    TimeSlotController : Symbol.for("TimeSlotController"),
-    TimeSlotService : Symbol.for("TimeSlotService"),
+
+    IServiceRepository : Symbol.for("IServiceRepository"),
+    ISubServiceRepository: Symbol.for("ISubServiceRepository"),
+
+    ITimeSlotService : Symbol.for("ITimeSlotService"), 
+    ITimeSlotController : Symbol.for("ITimeSlotController"),
+       
+
     PartnerRoutes : Symbol.for("PartnerRoutes"),
-    BookingRepository : Symbol.for("BookingRepository"),
-    BookingService : Symbol.for("BookingService"),
-    BookingController : Symbol.for("BookingController"),
+   
+    IBookingRepository : Symbol.for("IBookingRepository"),
+    IBookingService : Symbol.for("IBookingService"),
+    IBookingController : Symbol.for("IBookingController"),
     BookingRoutes : Symbol.for("BookingRoutes"),
-    WalletRepository:Symbol.for("WalletRepository"),
-    WalletService:Symbol.for("WalletService"),
-    WalletController:Symbol.for("WalletController"),
+  
+
+    IWalletRepository:Symbol.for("IWalletRepository"),
+    IWalletService:Symbol.for("IWalletService"),
+    IWalletController:Symbol.for("IWalletController"),
     WalletRoutes : Symbol.for("WalletRoutes"),
-    TransactionRepository: Symbol.for("TransactionRepository"),
-    TransactionService: Symbol.for("TransactionService"),
-    TransactionController: Symbol.for("TransactionController"),
+    
+    ITransactionRepository: Symbol.for("ITransactionRepository"),
+    ITransactionService: Symbol.for("ITransactionService"),
+    ITransactionController: Symbol.for("ITransactionController"),
     TransactionRoutes: Symbol.for("TransactionRoutes")
+
 }

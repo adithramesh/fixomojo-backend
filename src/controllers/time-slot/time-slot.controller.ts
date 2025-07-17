@@ -2,16 +2,28 @@ import { Request, Response } from "express";
 import { ITimeSlotController } from "./time-slot.controller.interface";
 import { TYPES } from "../../types/types";
 import { inject, injectable } from "inversify";
-import { TimeSlotService } from "../../services/time-slot/time-slot.service";
 import { HttpStatus } from "../../utils/http-status.enum";
+import { ITimeSlotService } from "../../services/time-slot/time-slot.service.interface";
 
 @injectable()
 export class TimeSlotController implements ITimeSlotController {
 
     constructor(
-        @inject(TYPES.TimeSlotService) private _timeSlotService: TimeSlotService
+        @inject(TYPES.ITimeSlotService) private _timeSlotService: ITimeSlotService
       ) {}
 
+    async checkAvailabilty(req: Request, res: Response): Promise<void>{
+        try {
+           const {technicianId, startTime, endTime}= req.body
+           const data = {technicianId, startTime, endTime}
+           const result = await this._timeSlotService.checkSlotAvailability(data)
+           res.status(HttpStatus.SUCCESS).json(result)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } catch (error: any) {
+            console.error("Error to check avaibilty for lock purpose:", error);
+            res.status(HttpStatus.BAD_REQUEST).json({ success: false, message: error.message || "Failed to do lock operation controller " });
+        }
+    }
     async blockSlot(req: Request, res: Response): Promise<void> {
         try {
         const { technicianId, start, end, reason, isCustomerBooking, bookingId }= req.body

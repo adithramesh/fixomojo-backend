@@ -1,43 +1,19 @@
 import { inject, injectable } from "inversify";
 import { IWalletService } from "./wallet.service.interface";
 import { TYPES } from "../../types/types";
-import { WalletRepository } from "../../repositories/wallet/wallet.repository";
+// import { WalletRepository } from "../../repositories/wallet/wallet.repository";
 import { IWallet } from "../../models/wallet.model";
 import { stripe } from "../../config/stripe.config";
-import { TransactionService } from "../transaction/transaction.service";
+// import { TransactionService } from "../transaction/transaction.service";
+import { ITransactionService } from "../transaction/transaction.service.interface";
+import { IWalletRepository } from "../../repositories/wallet/wallet.repository.interface";
 
 @injectable()
 export class WalletService implements IWalletService {
     constructor(
-         @inject(TYPES.WalletRepository) private _walletRepository:WalletRepository,
-         @inject(TYPES.TransactionService) private _transactionService:TransactionService
+         @inject(TYPES.IWalletRepository) private _walletRepository:IWalletRepository,
+         @inject(TYPES.ITransactionService) private _transactionService:ITransactionService
     ){}
-
-//     async credit(userId: string, share: number, role: "partner" | "admin" | "user" | undefined, referenceId: string): Promise<{success: boolean, message: string, wallet?: IWallet}> {
-//     try {
-//         let wallet = await this._walletRepository.findWalletByUserId(userId);
-        
-//         if (!wallet) {
-//             wallet = await this._walletRepository.createWallet(userId, role || "partner", share, referenceId);
-//         } else {
-//             wallet.balance += share;
-//             await wallet.save();
-//         }
-        
-//         return {
-//             success: true,
-//             message: "Wallet is credited",
-//             wallet: wallet
-//         };
-//     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-//     } catch (error: any) {
-//         console.error("Failed to credit the share:", error);
-//         return {
-//             success: false,
-//             message: `Failed to credit the share: ${error.message || error}`,
-//         };
-//     }
-// }
 
 async credit(userId: string, amount: number, role: "partner" | "admin" | "user" | undefined, referenceId: string): Promise<{ success: boolean, message: string, wallet?: IWallet }> {
   try {

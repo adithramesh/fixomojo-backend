@@ -1,26 +1,26 @@
 import { inject, injectable } from "inversify";
 import { PaginatedResponseDTO, PaginationRequestDTO } from "../../dto/admin.dto";
-import { BookingRepository } from "../../repositories/booking/booking.repository";
 import { TYPES } from "../../types/types";
 import { IBooking } from "../../models/booking.model";
 import { IBookingService } from "./booking.service.interface";
-import { OtpService } from "../auth/otp.service";
-import { OtpRepository } from "../../repositories/otp/otp.repository";
-import { UserRepository } from "../../repositories/user/user.repository";
+import { IOtpService } from "../auth/otp.service";
 import mongoose from "mongoose";
-import { WalletService } from "../wallet/wallet.service";
-import { TransactionService } from "../transaction/transaction.service";
 import config from "../../config/env";
+import { ITransactionService } from "../transaction/transaction.service.interface";
+import { IWalletService } from "../wallet/wallet.service.interface";
+import { IBookingRepository } from "../../repositories/booking/booking.repository.interface";
+import { IUserRepository } from "../../repositories/user/user.repository.interface";
+import { IOtpRepository } from "../../repositories/otp/otp.repository.interface";
 
 @injectable()
 export class BookingService implements IBookingService{ 
     constructor(
-        @inject(TYPES.BookingRepository) private _bookingRepository:BookingRepository,
-        @inject(TYPES.OtpService) private _otpService:OtpService,
-        @inject(TYPES.OtpRepository) private _otpRepository:OtpRepository,
-        @inject(TYPES.UserRepository) private _userRepository:UserRepository,
-        @inject(TYPES.WalletService) private _walletService:WalletService,
-        @inject(TYPES.TransactionService) private _transactionService:TransactionService
+        @inject(TYPES.IBookingRepository) private _bookingRepository:IBookingRepository,
+        @inject(TYPES.IOtpService) private _otpService:IOtpService,
+        @inject(TYPES.IOtpRepository) private _otpRepository:IOtpRepository,
+        @inject(TYPES.IUserRepository) private _userRepository:IUserRepository,
+        @inject(TYPES.IWalletService) private _walletService:IWalletService,
+        @inject(TYPES.ITransactionService) private _transactionService:ITransactionService
     ){}
 
      async getBookings(pagination: PaginationRequestDTO, userId:string, role:string): Promise<{ success: boolean; message: string; bookingList?: PaginatedResponseDTO<IBooking[]>}> {
@@ -35,7 +35,7 @@ export class BookingService implements IBookingService{
           
           if (searchTerm) {
               filter.subServiceName = { $regex: searchTerm, $options: 'i' };
-            }
+          }
           const bookingList = await this._bookingRepository.findBookingsPaginated(
             skip,
             pageSize,
@@ -121,20 +121,20 @@ export class BookingService implements IBookingService{
       }
     
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      async countBookings():Promise<any>{
-        try {
-          const count = await this._bookingRepository.countBookings()
-          console.log("count bookings in service", count);
-          return count
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } catch (error:any) {
-           console.error("Error in counting bookings:", error);
-          return {
-            success: false,
-            message: `failed to count bookings : ${error.message || error}`,
-          };
-        }
-      }
+      // async countBookings():Promise<any>{
+      //   try {
+      //     const count = await this._bookingRepository.countBookings()
+      //     console.log("count bookings in service", count);
+      //     return count
+      //   // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      //   } catch (error:any) {
+      //      console.error("Error in counting bookings:", error);
+      //     return {
+      //       success: false,
+      //       message: `failed to count bookings : ${error.message || error}`,
+      //     };
+      //   }
+      // }
 
       async initiateWorkComplete(technicianId:string, bookingId:string): Promise<{ success: boolean; message: string; }> {
         try {

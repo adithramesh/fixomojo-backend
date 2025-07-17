@@ -2,13 +2,14 @@ import { Router } from 'express'
 import { inject, injectable } from 'inversify'
 import { TYPES } from '../types/types'
 import { authMiddleware } from '../middlewares/auth.middleware'
-import { WalletController } from '../controllers/wallet/wallet.controller'
+import { IWalletController } from '../controllers/wallet/wallet.controller.interface'
+
 
 @injectable()
 export class WalletRoutes {
     private router : Router
     constructor(
-        @inject(TYPES.WalletController) private _walletController : WalletController
+        @inject(TYPES.IWalletController) private _walletController : IWalletController
     ){
         this.router=Router()
         this.initializeRoutes()
