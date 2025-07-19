@@ -7,16 +7,16 @@ import {
   MultiDayBlockSlotDTO,
 } from "../../dto/time-slot.dto";
 import config from "../../config/env";
-import { UserRepository } from "../../repositories/user/user.repository";
 import { TYPES } from "../../types/types";
-import { BookingRepository } from "../../repositories/booking/booking.repository";
+import { IBookingRepository } from "../../repositories/booking/booking.repository.interface";
+import { IUserRepository } from "../../repositories/user/user.repository.interface";
 
 @injectable()
 export class TimeSlotService implements ITimeSlotService {
  
   constructor(
-    @inject(TYPES.UserRepository) private _userRepository: UserRepository,
-    @inject(TYPES.BookingRepository) private _bookingRepository:BookingRepository
+    @inject(TYPES.IUserRepository) private _userRepository: IUserRepository,
+    @inject(TYPES.IBookingRepository) private _bookingRepository:IBookingRepository
   ) {}
 
   private async getCalendarClient() {
@@ -36,61 +36,25 @@ export class TimeSlotService implements ITimeSlotService {
   }
 
 
-  // async blockSlot(data: BlockSlotDTO): Promise<{ success: boolean; message: string; eventId?: string | null }> {
-  //   const { technicianId, start, end, reason, isCustomerBooking } = data;
-  //   try {
-  //     const technician = await this.validateTechnician(technicianId);
+   async checkSlotAvailability(data: { technicianId: string; startTime: Date; endTime: Date }) {
+    try {
+      const existingBooking = await this._bookingRepository.findOneBooking({
+        technicianId: data.technicianId,
+        timeSlotStart: data.startTime,
+        timeSlotEnd: data.endTime,
+        bookingStatus: { $in: ['Hold', 'Confirmed'] },
+        createdAt: { $gt: new Date(Date.now() - 5 * 60 * 1000) }, // Only recent Holds
+      });
 
-  //     const calendar = await this.getCalendarClient();
-
-  //     // Define event summary and description based on booking type
-  //     const summary = isCustomerBooking
-  //       ? `Booked: ${reason}`
-  //       : `Blocked: ${reason}`;
-  //     const description = isCustomerBooking
-  //       ? `Customer booking for service. Reason: ${reason}`
-  //       : `Technician unavailability: ${reason}`;
-  //       console.log("summary, description", summary, description);
-        
-  //     const event = {
-  //       summary: summary,
-  //       description: description,
-  //       start: {
-  //         dateTime: new Date(start).toISOString(),
-  //         timeZone: "Asia/Kolkata",
-  //       },
-  //       end: {
-  //         dateTime: new Date(end).toISOString(),
-  //         timeZone: "Asia/Kolkata",
-  //       },
-  //       extendedProperties: {
-  //         private: {
-  //           type: isCustomerBooking ? "customerBooking" : "technicianBlock",
-  //           reason: reason, // Store reason for easier retrieval if needed
-  //         },
-  //       },
-  //     };
-  //     console.log("event", event);
-      
-  //     const response = await calendar.events.insert({
-  //       calendarId: technician.email,
-  //       requestBody: event,
-  //     });
-
-  //     return {
-  //       success: true,
-  //       message: "Slot blocked successfully",
-  //       eventId: response.data.id,
-  //     };
-  //     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  //   } catch (error: any) {
-  //     console.error("Error in blockSlot:", error);
-  //     return {
-  //       success: false,
-  //       message: `Failed to block slot: ${error.message || error}`,
-  //     };
-  //   }
-  // }
+      return {
+        success: !existingBooking,
+        message: existingBooking ? 'Slot unavailable' : 'Slot available',
+      };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      return { success: false, message: `Error checking slot: ${error.message}` };
+    }
+  }
 
    async blockSlot(data: BlockSlotDTO): Promise<{ success: boolean; message: string; eventId?: string | null }> {
     const { technicianId, start, end, reason, isCustomerBooking, bookingId } = data;
@@ -150,7 +114,7 @@ export class TimeSlotService implements ITimeSlotService {
 
       await this._bookingRepository.updateBooking(bookingId, {
         bookingStatus: 'Confirmed',
-        calendarEventId: calendarResponse.data.id
+        googleEventId: calendarResponse.data.id!
       });
 
       return {

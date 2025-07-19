@@ -17,13 +17,17 @@ export class TransactionRepository
     return this.findById(userId);
   }
 
+  async getTransactionByReference(referenceId: string): Promise<ITransaction | null> {
+    return this.findOne({referenceId})
+  }
+
   async findTransactionsPaginated(
     skip: number,
     limit: number,
     sortBy: string,
     sortOrder: string,
     filter: Record<string, unknown> = {}
-  ) {
+  ):Promise<ITransaction[]> {
     const sortDirection: 1 | -1 = sortOrder === "asc" ? 1 : -1;
     const sortOptions: Record<string, 1 | -1> = sortBy
       ? { [sortBy]: sortDirection }
@@ -36,8 +40,8 @@ export class TransactionRepository
   }
 
 
-  async countTransactions() {
-    const totalTransactions = await this.find();
+  async countTransactions(userId: string) {
+    const totalTransactions = await this.find({userId});
     // const totalBookings=this.getAllBookings()
     const count = totalTransactions.length;
     console.log("length", count);

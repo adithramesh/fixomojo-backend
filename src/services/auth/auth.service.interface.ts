@@ -10,6 +10,5 @@ export interface IAuthService{
     login(loginData:LoginRequestDTO):Promise<SignupResponseDTO>
     forgotPassword(data:ForgotPasswordRequestDTO):Promise<SignupResponseDTO>
     resetPassword(resetData: ResetPasswordRequestDTO): Promise<SignupResponseDTO>
-    
-    
+    refreshToken(refreshToken: string): Promise<SignupResponseDTO>
 }

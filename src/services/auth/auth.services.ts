@@ -1,12 +1,10 @@
 import { OtpRequestDTO, OtpResendRequestDTO } from "../../dto/otp-verify.dto";
 import { SignupUserRequestDTO, SignupResponseDTO } from "../../dto/signup.dto";
 import { IUser } from "../../models/user.model";
-import { OtpRepository } from "../../repositories/otp/otp.repository";
-import { UserRepository } from "../../repositories/user/user.repository";
 import { TYPES } from "../../types/types";
 import { IAuthService } from "./auth.service.interface";
-import { OtpService } from "./otp.service";
-import { PasswordService } from "./password.service";
+import { IOtpService } from "./otp.service";
+import { IPasswordService } from "./password.service";
 import { injectable, inject } from "inversify";
 // import twilio from "twilio";
 import jwt from "jsonwebtoken";
@@ -15,16 +13,18 @@ import mongoose from "mongoose";
 import { LoginRequestDTO } from "../../dto/login.dto";
 import { ForgotPasswordRequestDTO, ResetPasswordRequestDTO } from "../../dto/password.dto";
 import { HttpStatus } from "../../utils/http-status.enum";
+import { IUserRepository } from "../../repositories/user/user.repository.interface";
+import { IOtpRepository } from "../../repositories/otp/otp.repository.interface";
 // const client =twilio(config.TWILIO_SID,config.TWILIO_AUTH_TOKEN)
 
 @injectable()
 export class AuthService implements IAuthService {
 
     constructor(
-        @inject(TYPES.OtpRepository) private _otpRepository: OtpRepository,
-        @inject(TYPES.OtpService) private _otpService: OtpService,
-        @inject(TYPES.UserRepository) private _userRepository: UserRepository,
-        @inject(TYPES.PasswordService) private _passwordService: PasswordService
+        @inject(TYPES.IOtpRepository) private _otpRepository: IOtpRepository,
+        @inject(TYPES.IOtpService) private _otpService: IOtpService,
+        @inject(TYPES.IUserRepository) private _userRepository: IUserRepository,
+        @inject(TYPES.IPasswordService) private _passwordService: IPasswordService
     ) { }
 
     async signup(signUpData: SignupUserRequestDTO): Promise<SignupResponseDTO> {

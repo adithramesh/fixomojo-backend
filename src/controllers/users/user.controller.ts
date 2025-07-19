@@ -2,15 +2,15 @@ import { Request, Response } from "express";
 import { HomeResponseDTO } from "../../dto/home.dto";
 import { IUserController } from "./user.controller.interface"
 import { inject, injectable } from "inversify";
-import { UserService } from "../../services/users/user.service";
 import { TYPES } from "../../types/types";
 import { HttpStatus } from "../../utils/http-status.enum";
 import { AuthRequest } from '../../middlewares/auth.middleware';
+import { IUserService } from "../../services/users/user.service.interface";
 
 @injectable()
 export class UserController implements IUserController{
     constructor(
-        @inject(TYPES.UserService) private _userService:UserService
+        @inject(TYPES.IUserService) private _userService:IUserService
     ){}
     async getHome( req: Request,res: Response<HomeResponseDTO>): Promise<void> {
         const searchTerm = req.query.searchTerm as string

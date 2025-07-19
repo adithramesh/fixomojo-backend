@@ -1,16 +1,16 @@
 import { Router } from 'express'
 import { inject, injectable } from 'inversify'
 import { TYPES } from '../types/types'
-import { AdminController } from '../controllers/admin/admin.controller'
 import { TimeSlotController } from '../controllers/time-slot/time-slot.controller'
+import { IAdminController } from '../controllers/admin/admin.controller.interface'
 
 
 @injectable()
 export class PartnerRoutes {
     private router : Router
     constructor(
-        @inject(TYPES.AdminController) private _adminController : AdminController,
-        @inject(TYPES.TimeSlotController) private _timeSlotController : TimeSlotController
+        @inject(TYPES.IAdminController) private _adminController : IAdminController,
+        @inject(TYPES.ITimeSlotController) private _timeSlotController : TimeSlotController
     ){
         this.router=Router()
         this.initializeRoutes()

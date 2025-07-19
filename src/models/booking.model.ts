@@ -52,5 +52,6 @@ const bookingSchema:Schema = new Schema({
 { timestamps: true } 
 )
 
+bookingSchema.index({ technicianId: 1, timeSlotStart: 1, timeSlotEnd: 1, bookingStatus: 1 });
 export default mongoose.model<IBooking>('Booking', bookingSchema)
 

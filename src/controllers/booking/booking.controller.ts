@@ -1,16 +1,16 @@
 import { inject, injectable } from "inversify";
 import { IBookingController } from "./booking.controller.interface";
-import { BookingService } from "../../services/booking/booking.service";
 import { TYPES } from "../../types/types";
 import { Request, Response } from "express";
 import { AuthRequest } from "../../middlewares/auth.middleware";
 import { PaginationRequestDTO } from "../../dto/admin.dto";
 import { HttpStatus } from "../../utils/http-status.enum";
+import { IBookingService } from "../../services/booking/booking.service.interface";
 
 @injectable()
 export class BookingController implements IBookingController{
     constructor(
-        @inject(TYPES.BookingService) private _bookingService :BookingService
+        @inject(TYPES.IBookingService) private _bookingService :IBookingService
     ){}
 
     async bookings(req: AuthRequest, res: Response): Promise<void> {
@@ -84,16 +84,16 @@ export class BookingController implements IBookingController{
             }
         }
     
-        async countBookings(_req: AuthRequest, res: Response):Promise<void>{
-            try {
-                const response =  await this._bookingService.countBookings()
-                res.status(HttpStatus.SUCCESS).json(response)
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            } catch (error:any) {
-                console.error("Error counting all bookings:", error);
-                res.status(HttpStatus.BAD_REQUEST).json({ success: false, message: error.message || "Failed to count all bookings" });
-            }
-        }
+        // async countBookings(_req: AuthRequest, res: Response):Promise<void>{
+        //     try {
+        //         const response =  await this._bookingService.countBookings()
+        //         res.status(HttpStatus.SUCCESS).json(response)
+        //     // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        //     } catch (error:any) {
+        //         console.error("Error counting all bookings:", error);
+        //         res.status(HttpStatus.BAD_REQUEST).json({ success: false, message: error.message || "Failed to count all bookings" });
+        //     }
+        // }
 
         async initiateWorkComplete(req: AuthRequest, res: Response): Promise<void> {
             try {

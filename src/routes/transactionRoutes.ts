@@ -2,13 +2,15 @@ import { Router } from 'express'
 import { inject, injectable } from 'inversify'
 import { TYPES } from '../types/types'
 import { authMiddleware } from '../middlewares/auth.middleware'
-import { TransactionController } from '../controllers/transaction/transaction.controller'
+// import { TransactionController } from '../controllers/transaction/transaction.controller'
+import { ITransactionController } from '../controllers/transaction/transaction.controller.interface'
 
 @injectable()
 export class TransactionRoutes {
     private router : Router
     constructor(
-        @inject(TYPES.TransactionController) private _transactionController : TransactionController
+        // @inject(TYPES.TransactionController) private _transactionController : TransactionController
+        @inject(TYPES.ITransactionController) private _transactionController : ITransactionController
     ){
         this.router=Router()
         this.initializeRoutes()

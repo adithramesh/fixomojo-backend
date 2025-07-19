@@ -13,6 +13,8 @@ export interface BackendTimeSlot {
 export interface ITimeSlotService {
     blockSlot(data:BlockSlotDTO):Promise<{ success: boolean; message: string; eventId?: string|null }>
     blockMultiDaySlots(data: MultiDayBlockSlotDTO): Promise<{ success: boolean; message: string }>;
+    checkSlotAvailability(data: { technicianId: string; startTime: Date; endTime: Date }):Promise<{success: boolean; message: string}>
     // getAvailableSlots(data:AvailableSlotsDTO):Promise<{ start: Date; end: Date }[]>
+    unblockSlot(technicianId: string,googleEventId: string): Promise<{ success: boolean; message: string }> 
     getAvailableSlots(data: AvailableSlotsDTO): Promise<{ success: boolean; slots: BackendTimeSlot[] }>;
 }

@@ -1,11 +1,12 @@
 import argon2 from 'argon2'
 import { injectable } from 'inversify'
-interface IpasswordService{
+
+export interface IPasswordService{
     hash(password:string):Promise<string>
     verifyPassword(hashedPasswrod:string, storedPassword:string):Promise<boolean>
 }
 @injectable()
-export class PasswordService implements IpasswordService{
+export class PasswordService implements IPasswordService{
     async hash(password: string): Promise<string> {
         return argon2.hash(password)
     }

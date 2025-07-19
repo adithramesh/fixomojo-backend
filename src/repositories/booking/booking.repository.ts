@@ -27,11 +27,19 @@ export class BookingRepository extends BaseRepository<IBooking> implements IBook
             .exec();
   }
 
+  async findBookingsWithStatus(filter: object): Promise<IBooking[]> {
+    return await this.find(filter)
+  }
+
   async findBookingById(id:string):Promise<IBooking | null>{
     return await this.findById(id)
   }
 
-  async findBookingsPaginated(skip: number,limit: number,sortBy: string,sortOrder: string,filter:Record<string, unknown> = {}) 
+  async findOneBooking(data: object): Promise<IBooking | null> {
+    return await this.findOne(data)
+  }
+
+  async findBookingsPaginated(skip: number,limit: number,sortBy: string,sortOrder: string,filter:Record<string, unknown> = {}) :Promise<IBooking[]>
       {
           const sortDirection: 1 | -1 = sortOrder === 'asc' ? 1 : -1; 
           const sortOptions: Record<string, 1 | -1> = sortBy ? { [sortBy]: sortDirection } : {}; 
@@ -47,7 +55,6 @@ export class BookingRepository extends BaseRepository<IBooking> implements IBook
     // }
     async countBookings(filter: Record<string, unknown> = {}) {
         const totalBookings=await this.find(filter);
-        // const totalBookings=this.getAllBookings()
         const count=totalBookings.length
         console.log("length", count);
         return count

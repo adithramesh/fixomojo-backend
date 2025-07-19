@@ -1,16 +1,18 @@
-import { Request, Response } from "express";
+import { Response } from "express";
 import { inject, injectable } from "inversify";
 import { ITransactionController } from "./transaction.controller.interface";
-import { TransactionService } from "../../services/transaction/transaction.service";
+// import { TransactionService } from "../../services/transaction/transaction.service";
 import { TYPES } from "../../types/types";
 import { HttpStatus } from "../../utils/http-status.enum";
 import { AuthRequest } from "../../middlewares/auth.middleware";
 import { PaginationRequestDTO } from "../../dto/admin.dto";
+import { ITransactionService } from "../../services/transaction/transaction.service.interface";
 
 @injectable()
 export class TransactionController implements ITransactionController{
     constructor(
-        @inject(TYPES.TransactionService) private _transactionService:TransactionService
+        // @inject(TYPES.TransactionService) private _transactionService:TransactionService
+        @inject(TYPES.ITransactionService) private _transactionService:ITransactionService
     ){}
 
     async logTransaction(req: AuthRequest, res: Response): Promise<void> {
@@ -65,9 +67,10 @@ export class TransactionController implements ITransactionController{
         }
     }
 
-    async countTransactions(_req: Request, res: Response): Promise<void> {
+    async countTransactions(req: AuthRequest, res: Response): Promise<void> {
         try {
-            const response =  await this._transactionService.countTransaction()
+            const userId=req.user?.id.toString() || ''
+            const response =  await this._transactionService.countTransaction(userId)
             res.status(HttpStatus.SUCCESS).json(response)
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (error:any) {

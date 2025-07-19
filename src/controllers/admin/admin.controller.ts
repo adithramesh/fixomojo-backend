@@ -2,18 +2,18 @@ import { Request, Response } from "express";
 import { PaginatedResponseDTO, PaginationRequestDTO, ServiceRequestDTO, ServiceResponseDTO, SubServiceRequestDTO, SubServiceResponseDTO, UserResponseDTO } from "../../dto/admin.dto";
 import { IAdminController } from "./admin.controller.interface";
 import { inject, injectable } from "inversify";
-import { AdminService } from "../../services/admin/admin.service";
 import { TYPES } from "../../types/types";
 import { HttpStatus } from "../../utils/http-status.enum";
 import { uploadToCloudinary } from "../../utils/cloudinary.uploader";
 import mongoose from "mongoose";
 import { AuthRequest } from "../../middlewares/auth.middleware";
+import { IAdminService } from "../../services/admin/admin.service.interface";
 type EmptyParams = Record<string, never>;
 
 @injectable()
 export class AdminController implements IAdminController {
   constructor(
-    @inject(TYPES.AdminService) private _adminService: AdminService
+    @inject(TYPES.IAdminService) private _adminService: IAdminService
   ) {}
   async addService(
     req: Request<EmptyParams, object, ServiceRequestDTO>,
@@ -228,7 +228,7 @@ export class AdminController implements IAdminController {
      try {
       const serviceId = req.params.id
       const serviceData = req.body
-      // console.log("update service,req.params, req.body, req.file: ",req.params, req.body, req.file);
+      console.log(`update service,req.params ${req.params}, req.body ${req.body}, req.file:${req.file} ` );
        if (req.file) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const uploadResult:any = await uploadToCloudinary(req.file.buffer, 'services');

@@ -2,26 +2,25 @@ import { inject, injectable } from "inversify";
 import { HomeResponseDTO } from "../../dto/home.dto";
 import { IUserService } from "./user.service.interface";
 import { TYPES } from "../../types/types";
-import { ServiceRepository } from "../../repositories/service/service.repository";
 import { BookServiceRequestDTO, BookServiceResponseDTO } from "../../dto/book-service.dto";
-import { BookingRepository } from "../../repositories/booking/booking.repository";
 import mongoose from "mongoose";
 import { stripe } from "../../config/stripe.config";
 import { IBooking } from "../../models/booking.model";
-// import { PaginationRequestDTO } from "../../dto/admin.dto";
-import { TimeSlotService } from "../time-slot/time-slot.service";
-import { WalletService } from "../wallet/wallet.service";
-import { TransactionService } from "../transaction/transaction.service";
+import { ITransactionService } from "../transaction/transaction.service.interface";
+import { IWalletService } from "../wallet/wallet.service.interface";
+import { IBookingRepository } from "../../repositories/booking/booking.repository.interface";
+import { ITimeSlotService } from "../time-slot/time-slot.service.interface";
+import { IServiceRepository } from "../../repositories/service/service.repository.interface";
 
 
 @injectable()
 export class UserService implements IUserService {
     constructor(
-        @inject(TYPES.ServiceRepository) private _serviceRepository:ServiceRepository,
-        @inject(TYPES.BookingRepository) private _bookingRepository:BookingRepository,
-        @inject(TYPES.TimeSlotService) private _timeSlotService:TimeSlotService,
-        @inject(TYPES.WalletService) private _walletService:WalletService,
-        @inject(TYPES.TransactionService) private _transactionService:TransactionService
+        @inject(TYPES.IServiceRepository) private _serviceRepository:IServiceRepository,
+        @inject(TYPES.IBookingRepository) private _bookingRepository:IBookingRepository,
+        @inject(TYPES.ITimeSlotService) private _timeSlotService:ITimeSlotService,
+        @inject(TYPES.IWalletService) private _walletService:IWalletService,
+        @inject(TYPES.ITransactionService) private _transactionService:ITransactionService
     ){}
     // async getHome(): Promise<HomeResponseDTO> {
     //    const serviceData = await this._serviceRepository.findServciesPaginated()
@@ -58,6 +57,18 @@ export class UserService implements IUserService {
 
   async bookService(data: BookServiceRequestDTO): Promise<BookServiceResponseDTO> {
   try {
+
+      const existingBooking = await this._bookingRepository.findOneBooking({
+        technicianId: data.technicianId,
+        timeSlotStart: data.timeSlotStart,
+        timeSlotEnd: data.timeSlotEnd,
+        bookingStatus: { $in: ['Hold', 'Confirmed'] },
+        createdAt: { $gt: new Date(Date.now() - 5 * 60 * 1000) }, // Only consider recent Holds
+      });
+
+      if (existingBooking) {
+        return { success: false, message: 'Slot is already booked or temporarily reserved.' };
+      }
     const newBooking = await this._bookingRepository.createBooking({
       ...data,
       bookingStatus: 'Hold', // 🟡 Initial temporary hold
@@ -135,10 +146,41 @@ export class UserService implements IUserService {
       return { success: false, message: 'Payment not completed.' };
     }
 
-    const booking = await this._bookingRepository.findBookingById(bookingId as string);
-    if (!booking || booking.bookingStatus !== 'Hold') {
-      return { success: false, message: 'Slot already taken or booking expired.' };
-    }
+    // const booking = await this._bookingRepository.findBookingById(bookingId as string);
+    // if (!booking || booking.bookingStatus !== 'Hold') {
+    //   return { success: false, message: 'Slot already taken or booking expired.' };
+    // }
+
+     // Check if booking is still in Hold and not expired
+      const booking = await this._bookingRepository.findBookingById(bookingId as string);
+      if (!booking || booking.bookingStatus !== 'Hold' || booking.createdAt < new Date(Date.now() - 5 * 60 * 1000)) {
+        if (booking) {
+          await this._bookingRepository.updateBooking(bookingId as string, {
+            bookingStatus: 'Cancelled',
+            timeSlotStart: null,
+            timeSlotEnd: null,
+          });
+        }
+        return { success: false, message: 'Booking expired or invalid.' };
+      }
+
+      // Check for conflicting Confirmed bookings
+      const conflictingBooking = await this._bookingRepository.findOneBooking({
+        technicianId: booking.technicianId,
+        timeSlotStart: booking.timeSlotStart,
+        timeSlotEnd: booking.timeSlotEnd,
+        bookingStatus: 'Confirmed',
+        _id: { $ne: bookingId },
+      });
+
+      if (conflictingBooking) {
+        await this._bookingRepository.updateBooking(bookingId as string, {
+          bookingStatus: 'Cancelled',
+          timeSlotStart: null,
+          timeSlotEnd: null,
+        });
+        return { success: false, message: 'Slot already booked by another user.' };
+      }
 
     // Proceed to confirm and block slot
     const blockResult = await this._timeSlotService.blockSlot({
@@ -265,71 +307,6 @@ export class UserService implements IUserService {
     },
   };
 }
-
-//  async walletHelper(newBooking:any){
-//   if (!newBooking || newBooking.bookingStatus !== 'Hold') {
-//       return { success: false, message: 'Slot already taken or booking expired.' };
-//     }
-//   const blockResult = await this._timeSlotService.blockSlot({
-//       technicianId: newBooking.technicianId,
-//       bookingId: newBooking._id?newBooking._id.toString():"",
-//       start: newBooking.timeSlotStart.toISOString(),
-//       end: newBooking.timeSlotEnd.toISOString(),
-//       reason: `Customer booking - ${newBooking.subServiceName}`,
-//       isCustomerBooking: true,
-
-//     });
-
-//     console.log("block result in wallethelper", blockResult);
-    
-//     if (!blockResult.success ) {
-//       await this._bookingRepository.updateBooking(newBooking._id as string, {
-//         paymentStatus: 'Success',
-//         bookingStatus: 'Failed',
-//         timeSlotStart:null,
-//         timeSlotEnd:null
-//       });
-//       return { success: false, message: blockResult.message };
-//     }
-    
-//     const updatedBooking = await this._bookingRepository.updateBooking(newBooking._id as string, {
-//       paymentStatus: 'Success',
-//       bookingStatus: 'Confirmed',
-//     });
-
-//     if(updatedBooking){
-//         try {
-//         const walletResult = await this._walletService.credit(newBooking.userId, -newBooking.totalAmount, 'user', newBooking._id!);
-//           if (!walletResult.success) {
-//             return {
-//               success: false,
-//               message: walletResult.message,
-//             };
-//           }
-//         await this._transactionService.logTransaction({
-//           userId: newBooking.userId,
-//           amount: newBooking.totalAmount,
-//           transactionType: 'debit',
-//           purpose: "booking-payment",
-//           referenceId: newBooking._id!,
-//           role:"user"
-//         });
-//         // success_url: `http://localhost:4200/payment-success?booking_id={newBooking._id}&type=wallet-booking`
-//       } catch (logError) {
-//         console.error("Error logging transaction:", logError);
-//         // Optionally, you can handle this error further, e.g., update booking status
-//       }
-//     }
-//     // return { success: true, message: 'Payment verified and slot booked.', bookingData: updatedBooking! };
-//     return {
-//           success: true,
-//           message: 'Payment verified and slot booked.',
-//           data: {
-//             ...updatedBooking!.toObject(),
-//             requiresCash: false 
-//           }
-//         };
-//  }
 
 
 }
