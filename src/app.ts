@@ -12,6 +12,7 @@ import { AdminRoutes } from './routes/admin.routes'
 import { WalletRoutes } from './routes/wallet.routes'
 import { TransactionRoutes } from './routes/transactionRoutes'
 import { BookingRoutes } from './routes/booking.routes'
+import { ChatRoutes } from './routes/chat.routes'
 
 const app:Express = express()
 const corsOption:cors.CorsOptions={
@@ -39,6 +40,7 @@ const partnerRoutes = container.get<PartnerRoutes>(TYPES.PartnerRoutes)
 const walletRoutes = container.get<WalletRoutes>(TYPES.WalletRoutes)
 const bookingRoutes = container.get<BookingRoutes>(TYPES.BookingRoutes)
 const transactionRoutes = container.get<TransactionRoutes>(TYPES.TransactionRoutes)
+const chatRoutes = container.get<ChatRoutes>(TYPES.ChatRoutes)
 app.use('/auth', authRoutes.getRouter())
 app.use('/user', userRoutes.getRouter())
 app.use('/admin', adminRoutes.getRouter())
@@ -46,5 +48,6 @@ app.use('/partner',partnerRoutes.getRouter())
 app.use('/wallet', walletRoutes.getRouter())
 app.use('/transaction', transactionRoutes.getRouter())
 app.use('/booking', bookingRoutes.getRouter())
+app.use('/chat', chatRoutes.getRouter())
 
 export default app

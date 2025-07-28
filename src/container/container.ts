@@ -51,6 +51,14 @@ import { IUserRepository } from '../repositories/user/user.repository.interface'
 import { IAuthController } from '../controllers/auth/auth.controller.interface'
 import { IAuthService } from '../services/auth/auth.service.interface'
 import { IOtpRepository } from '../repositories/otp/otp.repository.interface'
+import { ChatRepository } from '../repositories/chat/chat.repository'
+import { IChatRepository } from '../repositories/chat/chat.repository.interface'
+import { ChatRoutes } from '../routes/chat.routes'
+import { IChatController } from '../controllers/chat/chat.controller.interface'
+import { ChatController } from '../controllers/chat/chat.controller'
+import { IChatService } from '../services/chat/chat.service.interface'
+import { ChatService } from '../services/chat/chat.service'
+import { SocketConfig } from '../config/socket'
 
 
 const container = new Container()
@@ -95,5 +103,12 @@ container.bind<ITransactionRepository>(TYPES.ITransactionRepository).to(Transact
 container.bind<ITransactionService>(TYPES.ITransactionService).to(TransactionService)
 container.bind<ITransactionController>(TYPES.ITransactionController).to(TransactionController)
 container.bind<TransactionRoutes>(TYPES.TransactionRoutes).to(TransactionRoutes)
+
+container.bind<IChatRepository>(TYPES.IChatRepository).to(ChatRepository)
+container.bind<IChatService>(TYPES.IChatService).to(ChatService)
+container.bind<IChatController>(TYPES.IChatController).to(ChatController)
+container.bind<ChatRoutes>(TYPES.ChatRoutes).to(ChatRoutes)
+container.bind<SocketConfig>(TYPES.SocketConfig).to(SocketConfig)
+
 
 export default container;

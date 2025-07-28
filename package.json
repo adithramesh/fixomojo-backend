@@ -32,6 +32,7 @@
     "morgan": "^1.10.0",
     "multer": "^2.0.1",
     "node-cron": "^4.2.1",
+    "socket.io": "^4.8.1",
     "stripe": "^18.2.1",
     "twilio": "^5.5.1"
   },

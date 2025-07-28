@@ -42,6 +42,11 @@ export const TYPES={
     ITransactionRepository: Symbol.for("ITransactionRepository"),
     ITransactionService: Symbol.for("ITransactionService"),
     ITransactionController: Symbol.for("ITransactionController"),
-    TransactionRoutes: Symbol.for("TransactionRoutes")
+    TransactionRoutes: Symbol.for("TransactionRoutes"),
 
+    IChatRepository: Symbol.for("IChatRepository"),
+    IChatService: Symbol.for("IChatService"),
+    IChatController: Symbol.for("IChatController"),
+    ChatRoutes: Symbol.for("ChatRoutes"),
+    SocketConfig: Symbol.for('SocketConfig'),
 }
