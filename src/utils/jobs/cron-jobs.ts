@@ -1,6 +1,5 @@
 import cron from 'node-cron';
 import { TYPES } from '../../types/types';
-// import { BookingRepository } from '../../repositories/booking/booking.repository';
 import container from '../../container/container';
 import mongoose from 'mongoose';
 import { IBookingRepository } from '../../repositories/booking/booking.repository.interface';

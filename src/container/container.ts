@@ -59,6 +59,13 @@ import { ChatController } from '../controllers/chat/chat.controller'
 import { IChatService } from '../services/chat/chat.service.interface'
 import { ChatService } from '../services/chat/chat.service'
 import { SocketConfig } from '../config/socket'
+import { NotificationRepository } from '../repositories/notification/notification.repository'
+import { INotificationRepository } from '../repositories/notification/notification.repository.interface'
+import { NotificationService } from '../services/notification/notification.service'
+import { INotificationService } from '../services/notification/notification.service.interface'
+import { INotificationController } from '../controllers/notification/notification.controller.interface'
+import { NotificationController } from '../controllers/notification/notification.controller'
+import { NotificationRoutes } from '../routes/notofication.routes'
 
 
 const container = new Container()
@@ -108,6 +115,12 @@ container.bind<IChatRepository>(TYPES.IChatRepository).to(ChatRepository)
 container.bind<IChatService>(TYPES.IChatService).to(ChatService)
 container.bind<IChatController>(TYPES.IChatController).to(ChatController)
 container.bind<ChatRoutes>(TYPES.ChatRoutes).to(ChatRoutes)
+
+container.bind<INotificationRepository>(TYPES.INotificationRepository).to(NotificationRepository)
+container.bind<INotificationService>(TYPES.INotificationService).to(NotificationService)
+container.bind<INotificationController>(TYPES.INotificationController).to(NotificationController)
+container.bind<NotificationRoutes>(TYPES.NotificationRoutes).to(NotificationRoutes)
+
 container.bind<SocketConfig>(TYPES.SocketConfig).to(SocketConfig)
 
 

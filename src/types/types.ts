@@ -48,5 +48,11 @@ export const TYPES={
     IChatService: Symbol.for("IChatService"),
     IChatController: Symbol.for("IChatController"),
     ChatRoutes: Symbol.for("ChatRoutes"),
+
+    INotificationRepository: Symbol.for("INotificationRepository"),
+    INotificationService: Symbol.for("INotificationService"),
+    INotificationController: Symbol.for("INotificationController"),
+    NotificationRoutes: Symbol.for("NotificatonRoutes"),
+
     SocketConfig: Symbol.for('SocketConfig'),
 }

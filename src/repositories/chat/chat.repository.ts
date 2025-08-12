@@ -6,8 +6,7 @@ import { BaseRepository } from '../base.repository';
 
 @injectable()
 export class ChatRepository extends BaseRepository<IChat> implements IChatRepository {
-//   constructor(model: Model<IChat>) {
-//     super(model);
+
 constructor() {
     super(Chat);
   }

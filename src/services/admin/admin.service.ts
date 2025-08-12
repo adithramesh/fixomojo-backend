@@ -99,6 +99,7 @@ export class AdminService implements IAdminService {
           id: (user._id as mongoose.Types.ObjectId).toString(),
           username: user.username || '',
           email: user.email || '',
+          image:user.image || '',
           phoneNumber: user.phoneNumber || '',
           status: user.status,
           licenseStatus:user.licenseStatus,

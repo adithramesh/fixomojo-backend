@@ -11,6 +11,9 @@ import { IWalletService } from "../wallet/wallet.service.interface";
 import { IBookingRepository } from "../../repositories/booking/booking.repository.interface";
 import { IUserRepository } from "../../repositories/user/user.repository.interface";
 import { IOtpRepository } from "../../repositories/otp/otp.repository.interface";
+import { INotificationService } from "../notification/notification.service.interface";
+import { NotificationType } from "../../models/notification.model";
+import { Role } from "../../models/user.model";
 
 @injectable()
 export class BookingService implements IBookingService{ 
@@ -20,7 +23,8 @@ export class BookingService implements IBookingService{
         @inject(TYPES.IOtpRepository) private _otpRepository:IOtpRepository,
         @inject(TYPES.IUserRepository) private _userRepository:IUserRepository,
         @inject(TYPES.IWalletService) private _walletService:IWalletService,
-        @inject(TYPES.ITransactionService) private _transactionService:ITransactionService
+        @inject(TYPES.ITransactionService) private _transactionService:ITransactionService,
+        @inject(TYPES.INotificationService) private _notificationService:INotificationService
     ){}
 
      async getBookings(pagination: PaginationRequestDTO, userId:string, role:string): Promise<{ success: boolean; message: string; bookingList?: PaginatedResponseDTO<IBooking[]>}> {
@@ -164,6 +168,16 @@ export class BookingService implements IBookingService{
                   //     return { success: false, message: "Failed to send OTP", status: 500 };
                   // }
                   console.log("otp for work completion", otp);
+                   // Notify the User (customer) about OTP for work completion verification
+                  await this._notificationService.createNotification(
+                    booking.userId, // Recipient: The user who booked
+                    Role.USER,
+                    NotificationType.SystemAlert, 
+                    `Your booking OTP for ${booking.subServiceName} is: ${otp}. Please provide this to the technician to complete the work.`, // Message
+                    { bookingId: booking._id as string, technicianId: booking.technicianId, otp: otp } 
+                  );
+                  // You could also notify the technician that the OTP was sent to the user
+                  // await this._notificationService.createNotification(...)
                   return {
                       success: true,
                       message: "Success in initiate bookings completion",
@@ -206,24 +220,60 @@ export class BookingService implements IBookingService{
 
             
                 if(updatedBooking){
+
+                   // Notify the User (customer) about booking completion and payment
+                    await this._notificationService.createNotification(
+                      updatedBooking.userId,
+                      Role.USER,
+                      NotificationType.BookingCompleted,
+                      `Your booking for ${updatedBooking.subServiceName} has been successfully completed and payment processed.`,
+                      { bookingId: updatedBooking._id, totalAmount: updatedBooking.totalAmount }
+                    );
+
+
+                  
+
                   console.log("updatedBooking",updatedBooking );
                   const booking = await this._bookingRepository.findBookingById(bookingId)
                   if(booking){
                     const adminShare = booking.totalAmount * 0.20;
-                  const partnerShare = booking.totalAmount * 0.80;
+                    const partnerShare = booking.totalAmount * 0.80;
             
                   // Update Wallets
                   await this._walletService.credit(booking.technicianId, partnerShare, 'partner', bookingId!);
                   await this._walletService.credit(config.ADMIN_ID, adminShare, 'admin', bookingId!);
                   await this._transactionService.logTransaction({userId:booking.technicianId,amount:partnerShare,transactionType:'credit',purpose:"commission",role:"partner",referenceId: bookingId!});
                   await this._transactionService.logTransaction({userId:config.ADMIN_ID,amount:adminShare,transactionType:'credit',purpose:"commission", role:"admin", referenceId: bookingId!});
+
+                                      // Notify the Technician (partner) about booking completion and their earnings
+                    await this._notificationService.createNotification(
+                      updatedBooking.technicianId,
+                      Role.PARTNER,
+                      NotificationType.PaymentReceived,
+                      `Booking for ${updatedBooking.subServiceName} completed. You earned ${partnerShare.toFixed(2)}`,
+                      { bookingId: updatedBooking._id, earnedAmount: partnerShare }
+                    );
+
+                      // Notify the Admin about booking completion and commission
+                    await this._notificationService.createNotification(
+                      config.ADMIN_ID , 
+                      Role.ADMIN,
+                      NotificationType.BookingCompleted,
+                      `Booking ${updatedBooking._id} completed. Admin commission: ${adminShare.toFixed(2)}`,
+                      { bookingId: updatedBooking._id, adminCommission: adminShare }
+                    );
                   }
+                  
+
+                  }
+
+                  return { success: true, message: "OTP verified successfully"}
                 }
 
-            return { success: true, message: "OTP verified successfully"}
+            
           
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } catch(error:any) {
+         catch(error:any) {
            console.error("Error in verify work completion:", error);
           return {
             success: false,

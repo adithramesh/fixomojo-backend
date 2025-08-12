@@ -13,6 +13,7 @@ import { WalletRoutes } from './routes/wallet.routes'
 import { TransactionRoutes } from './routes/transactionRoutes'
 import { BookingRoutes } from './routes/booking.routes'
 import { ChatRoutes } from './routes/chat.routes'
+import { NotificationRoutes } from './routes/notofication.routes'
 
 const app:Express = express()
 const corsOption:cors.CorsOptions={
@@ -41,6 +42,7 @@ const walletRoutes = container.get<WalletRoutes>(TYPES.WalletRoutes)
 const bookingRoutes = container.get<BookingRoutes>(TYPES.BookingRoutes)
 const transactionRoutes = container.get<TransactionRoutes>(TYPES.TransactionRoutes)
 const chatRoutes = container.get<ChatRoutes>(TYPES.ChatRoutes)
+const notificationRoutes = container.get<NotificationRoutes>(TYPES.NotificationRoutes)
 app.use('/auth', authRoutes.getRouter())
 app.use('/user', userRoutes.getRouter())
 app.use('/admin', adminRoutes.getRouter())
@@ -49,5 +51,6 @@ app.use('/wallet', walletRoutes.getRouter())
 app.use('/transaction', transactionRoutes.getRouter())
 app.use('/booking', bookingRoutes.getRouter())
 app.use('/chat', chatRoutes.getRouter())
+app.use('/notification', notificationRoutes.getRouter())
 
 export default app

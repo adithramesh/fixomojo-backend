@@ -64,6 +64,7 @@ export interface UserResponseDTO {
   id?: string | number;
   username: string;
   phoneNumber: string;
+  image?:string;
   email: string;
   status?: string;
   licenseStatus?: string;

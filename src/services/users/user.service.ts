@@ -11,6 +11,8 @@ import { IWalletService } from "../wallet/wallet.service.interface";
 import { IBookingRepository } from "../../repositories/booking/booking.repository.interface";
 import { ITimeSlotService } from "../time-slot/time-slot.service.interface";
 import { IServiceRepository } from "../../repositories/service/service.repository.interface";
+import { UserResponseDTO } from "../../dto/admin.dto";
+import { IUserRepository } from "../../repositories/user/user.repository.interface";
 
 
 @injectable()
@@ -20,7 +22,8 @@ export class UserService implements IUserService {
         @inject(TYPES.IBookingRepository) private _bookingRepository:IBookingRepository,
         @inject(TYPES.ITimeSlotService) private _timeSlotService:ITimeSlotService,
         @inject(TYPES.IWalletService) private _walletService:IWalletService,
-        @inject(TYPES.ITransactionService) private _transactionService:ITransactionService
+        @inject(TYPES.ITransactionService) private _transactionService:ITransactionService,
+        @inject(TYPES.IUserRepository) private _userRepository:IUserRepository,
     ){}
     // async getHome(): Promise<HomeResponseDTO> {
     //    const serviceData = await this._serviceRepository.findServciesPaginated()
@@ -308,5 +311,32 @@ export class UserService implements IUserService {
   };
 }
 
+async getProfile(userId: string): Promise<Partial<UserResponseDTO>> {
+  const user = await this._userRepository.findUserById(userId)
+  if(!user){
+    throw new Error('Invalid user ID')
+  }
+  const userData={
+    username:user.username,
+    profilePic:user.image
+  }
+  return userData
+}
+
+async updateProfile(userId:string, userData:object):Promise<Partial<UserResponseDTO>> {
+    const user = await this._userRepository.findUserById(userId)
+        if(!user){
+          throw new Error('User not found to update'); 
+        }
+     const updatedUser =  await this._userRepository.updateUser(userId, userData);
+     if(!updatedUser){
+        throw new Error('failed to retrieve updated user'); 
+     }
+
+     return{
+      image:updatedUser.image,
+      username:updatedUser.username
+     }
+  }
 
 }
