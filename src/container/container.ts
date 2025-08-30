@@ -66,6 +66,8 @@ import { INotificationService } from '../services/notification/notification.serv
 import { INotificationController } from '../controllers/notification/notification.controller.interface'
 import { NotificationController } from '../controllers/notification/notification.controller'
 import { NotificationRoutes } from '../routes/notofication.routes'
+import { IStreamService } from '../services/stream/stream.service.interface'
+import { StreamService } from '../services/stream/stream.service'
 
 
 const container = new Container()
@@ -121,7 +123,9 @@ container.bind<INotificationService>(TYPES.INotificationService).to(Notification
 container.bind<INotificationController>(TYPES.INotificationController).to(NotificationController)
 container.bind<NotificationRoutes>(TYPES.NotificationRoutes).to(NotificationRoutes)
 
-container.bind<SocketConfig>(TYPES.SocketConfig).to(SocketConfig)
+container.bind<SocketConfig>(TYPES.SocketConfig).to(SocketConfig).inSingletonScope();
+
+container.bind<IStreamService>(TYPES.IStreamService).to(StreamService);
 
 
 export default container;

@@ -78,7 +78,7 @@ export class TimeSlotService implements ITimeSlotService {
       if (!booking && isCustomerBooking===true) {
         return { success: false, message: 'Booking not found or already processed.' };
       }
-      // Define event summary and description based on booking type
+    
       const summary = isCustomerBooking
         ? `Booked: ${reason}`
         : `Blocked: ${reason}`;
@@ -101,7 +101,7 @@ export class TimeSlotService implements ITimeSlotService {
         extendedProperties: {
           private: {
             type: isCustomerBooking ? "customerBooking" : "technicianBlock",
-            reason: reason, // Store reason for easier retrieval if needed
+            reason: reason, 
           },
         },
       };
@@ -208,13 +208,6 @@ export class TimeSlotService implements ITimeSlotService {
       const technician = await this.validateTechnician(technicianId);
       const calendar = await this.getCalendarClient();
 
-      // Optional: Before deleting, verify the event belongs to technician and is a 'technicianBlock'
-      // This prevents accidental deletion of customer bookings or other events.
-      // const event = await calendar.events.get({ calendarId: technician.email, eventId: googleEventId });
-      // if (event.data.extendedProperties?.private?.type !== 'technicianBlock') {
-      //     throw new Error('Cannot unblock this event type. Only technician blocks are editable.');
-      // }
-
       await calendar.events.delete({
         calendarId: technician.email,
         eventId: googleEventId,
@@ -224,7 +217,6 @@ export class TimeSlotService implements ITimeSlotService {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       console.error("Error in unblockSlot:", error);
-      // Handle specific Google API errors, e.g., 404 if event not found
       if (error.code === 404) {
         return {
           success: false,
@@ -268,7 +260,7 @@ export class TimeSlotService implements ITimeSlotService {
 
       const generatedHourlySlots: BackendTimeSlot[] = [];
       let currentTime = new Date(startOfDay);
-      const now = new Date(); // Current time for "past slot" check
+      const now = new Date(); 
 
       while (currentTime < endOfDay) {
         const slotStart = new Date(currentTime);
@@ -279,8 +271,6 @@ export class TimeSlotService implements ITimeSlotService {
         let googleEventId: string | undefined;
         let reason: string | undefined;
 
-        // Determine if the slot is in the past relative to current time
-        // For current day, consider anything within the next hour as effectively "past" for booking/blocking
         const isPastOrSoonSlot =
           slotEnd.getTime() < now.getTime() + 60 * 60 * 1000; // Ends within next 1 hour
 
@@ -296,7 +286,6 @@ export class TimeSlotService implements ITimeSlotService {
           const hasOverlap = slotStart < eventEnd && slotEnd > eventStart;
 
           if (hasOverlap) {
-            // Extract custom type from extended properties
             const eventCustomType = event.extendedProperties?.private?.type;
 
             if (eventCustomType === "customerBooking") {
@@ -305,24 +294,18 @@ export class TimeSlotService implements ITimeSlotService {
               reason = event.summary || "Customer Booking";
               break; // Customer booking takes highest precedence, no need to check other overlaps
             } else if (eventCustomType === "technicianBlock") {
-              // If it's a technician block, update type and capture details
               // Only update if not already marked as customer-booked (due to break above)
               slotType = "technician-blocked";
               googleEventId = event.id;
               reason = event.summary || "Technician Block";
-              // Do not break here if you want to consider if a technician block is actually overlapped by a customer booking
-              // However, with the 'customerBooking' check first, it's fine.
             } else {
-              // Default handling for other calendar events (e.g., personal appointments without custom type)
-              // Treat them as technician-blocked, but not explicitly editable by this system
-              slotType = "technician-blocked"; // Or 'busy' if you want a fourth type
+              slotType = "technician-blocked"; 
               googleEventId = event.id;
               reason = event.summary || "Busy (other event)";
             }
           }
         }
 
-        // Determine final availability and editability based on type and time
         const isAvailable = slotType === "available" && !isPastOrSoonSlot;
         const isEditable =
           (slotType === "available" || slotType === "technician-blocked") &&
@@ -334,7 +317,7 @@ export class TimeSlotService implements ITimeSlotService {
           type: slotType,
           isAvailable: isAvailable,
           isEditable: isEditable,
-          id: googleEventId, // This is the Google Calendar event ID
+          id: googleEventId, 
           reason: reason,
         });
 
@@ -350,7 +333,6 @@ export class TimeSlotService implements ITimeSlotService {
     } catch (error: any) {
       console.error("Error in getAvailableSlots:", error);
 
-      // Provide more specific error information
       if (error.code === 403) {
         throw new Error(
           "Calendar access denied. Check service account permissions."

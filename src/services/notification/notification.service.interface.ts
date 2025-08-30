@@ -6,19 +6,19 @@ export interface INotificationService {
 
   createNotification(
     recipientId: string,
-    recipientRole: string|undefined, // Use your Role enum here if possible (Role.USER etc.)
+    recipientRole: string|undefined, 
     type: NotificationType,
     message: string,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    payload?: any, // Using any for simplicity as discussed, matches schema
+    payload?: any,
     senderId?: mongoose.Types.ObjectId,
-    senderRole?: string // Use your Role enum here if possible
+    senderRole?: string 
   ): Promise<INotification>;
   getNotifications(
     pagination: PaginationRequestDTO,
     userId: string
   ): Promise<PaginatedResponseDTO<INotification[]>>;
   getUnreadCount(userId: string): Promise<number>;
-  markAsRead(notificationId: string): Promise<boolean>;
+  markAsRead(notificationId: string, actionTaken?: string): Promise<boolean>;
   markAllAsRead(userId: string): Promise<boolean>;
 }

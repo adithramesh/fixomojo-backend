@@ -11,4 +11,6 @@ export interface IBookingRepository {
     findBookingById(id:string):Promise<IBooking | null>
     findBookingByIdAndUpdateStatus(bookingId: string, expectedStatus: string, newStatus: string, session?: ClientSession):Promise<IBooking | null>
     countBookings(filter: Record<string, unknown>):Promise<number>
+    getBookingStatusDistribution():Promise<{status:string;count:number}[]>
+    getRevenueTrends():Promise<{week:number;totalRevenue:number}[]>
 }

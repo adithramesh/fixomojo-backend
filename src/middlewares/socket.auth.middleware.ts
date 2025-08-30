@@ -63,7 +63,6 @@ export const socketAuthMiddleware = async (socket: Socket, next: (err?: Error) =
       id: decoded.id,
       role: decoded.role,
     };
-
     next();
   } catch (err) {
     console.error('Socket.IO auth error:', err);

@@ -1,5 +1,4 @@
 import mongoose, { Schema, Document } from 'mongoose';
-// import { Role } from './user.model';
 
 export interface IChat extends Document {
   userId: mongoose.Types.ObjectId;
@@ -20,7 +19,7 @@ const chatSchema: Schema<IChat> = new Schema(
     },
     technicianId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'User', // References User model (not technician)
+      ref: 'User',
       required: true,
     },
     bookingId: {

@@ -19,6 +19,7 @@
     "typescript-eslint": "^8.29.0"
   },
   "dependencies": {
+    "@stream-io/node-sdk": "^0.5.1",
     "@types/morgan": "^1.9.9",
     "argon2": "^0.41.1",
     "cloudinary": "^2.7.0",

@@ -1,7 +1,7 @@
 import { injectable } from 'inversify';
-import { FilterQuery } from 'mongoose'; // Import FilterQuery
-import { BaseRepository } from '../base.repository'; // Assuming this path
-import Notification, { INotification } from '../../models/notification.model'; // Assuming this path and default export
+import { FilterQuery } from 'mongoose';
+import { BaseRepository } from '../base.repository'; 
+import Notification, { INotification } from '../../models/notification.model'; 
 import { INotificationRepository } from './notification.repository.interface';
 
 @injectable()
@@ -19,11 +19,11 @@ export class NotificationRepository extends BaseRepository<INotification> implem
   ): Promise<INotification[]> {
     const query: FilterQuery<INotification> = {
       ...filter,
-      recipientId: recipientId, // Ensure we filter by recipientId
+      recipientId: recipientId, 
     };
 
     let findQuery = this.model.find(query)
-      .sort({ createdAt: -1 }); // Sort by newest first
+      .sort({ createdAt: -1 }); 
 
     if (limit !== undefined) {
       findQuery = findQuery.limit(limit);
@@ -44,12 +44,17 @@ export class NotificationRepository extends BaseRepository<INotification> implem
   }
 
 
-  async markAsRead(notificationId: string): Promise<INotification | null> {
-    return this.model.findByIdAndUpdate(
-      notificationId,
-      { read: true },
-      { new: true } 
-    ).exec();
+  async markAsRead(notificationId: string, actionTaken?: string): Promise<INotification | null> {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const updateFields: any = { read: true };
+        if (actionTaken && ['accepted', 'declined'].includes(actionTaken)) {
+          updateFields.actionTaken = actionTaken;
+        }
+        return this.model.findByIdAndUpdate(
+          notificationId,
+          updateFields,
+          { new: true }
+        ).exec();
   }
 
 

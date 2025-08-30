@@ -78,3 +78,12 @@ export interface UserResponseDTO {
   experience?:number;
   rating?:number;
 }
+
+export interface AdminDashboardResponseDTO {
+  totalRevenue:number;
+  totalBookings:number;
+  activePartners:number;
+  totalCustomers:number;
+  bookingStatusDistribution?: { status: string; count: number }[];
+  revenueTrends?: { week: number; totalRevenue: number }[];
+}

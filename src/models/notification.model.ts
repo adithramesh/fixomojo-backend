@@ -10,13 +10,14 @@ export enum NotificationType {
   SystemAlert = 'system_alert',
   PaymentReceived = 'payment_received',
   BookingCancelled = 'booking_cancelled',
+  VideoCall = 'video-call',
 }
 
 export interface INotification extends Document {
   recipientId: string;
-  recipientRole?: Role; // Use your existing Role enum
-  senderId?: mongoose.Types.ObjectId; // Optional, as some notifications might be system-generated
-  senderRole?: Role; // Optional
+  recipientRole?: Role; 
+  senderId?: mongoose.Types.ObjectId; 
+  senderRole?: Role; 
   type: NotificationType;
   message: string;
   payload: { // THIS IS CRUCIAL
@@ -27,6 +28,7 @@ export interface INotification extends Document {
     // ... any other relevant structured data (e.g., technician name, service type)
   };
   read: boolean;
+  actionTaken?: 'accepted' | 'declined';
 }
 
 const notificationSchema: Schema<INotification> = new Schema(
@@ -37,8 +39,9 @@ const notificationSchema: Schema<INotification> = new Schema(
     senderRole: { type: String, enum: Object.values(Role) }, 
     type: { type: String,   enum: Object.values(NotificationType), }, 
     message: { type: String, required: true },
-    payload: { type: mongoose.Schema.Types.Mixed, default: {} }, // Allows flexible data
+    payload: { type: mongoose.Schema.Types.Mixed, default: {} }, 
     read: { type: Boolean, default: false },
+    actionTaken: {type:String, enum:['accepted', 'declined'], default: undefined}
   },
   { timestamps: true }
 );

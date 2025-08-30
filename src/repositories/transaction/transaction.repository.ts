@@ -42,7 +42,6 @@ export class TransactionRepository
 
   async countTransactions(userId: string) {
     const totalTransactions = await this.find({userId});
-    // const totalBookings=this.getAllBookings()
     const count = totalTransactions.length;
     console.log("length", count);
     return count;

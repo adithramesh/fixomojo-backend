@@ -68,4 +68,14 @@ export class BookingRepository extends BaseRepository<IBooking> implements IBook
         );
     }
 
+    async getBookingStatusDistribution(): Promise<{ status: string; count: number }[]>{
+      return await Booking.aggregate([{$group:{_id:`$bookingStatus`,count:{$sum:1}}},{$project:{_id:0,status:'$_id',count:'$count'}}])
+    }
+
+    async getRevenueTrends(): Promise<{ week: number; totalRevenue: number; }[]>{
+      const eightWeeksAgo = new Date();
+      eightWeeksAgo.setDate(eightWeeksAgo.getDate() - 56); // 8 weeks * 7 days
+      return await Booking.aggregate([{$match:{bookingStatus:'Completed',createdAt:{$gte:eightWeeksAgo}}},{$group:{_id:{$isoWeek:'$createdAt'}, totalRevenue:{ $sum: { $multiply: ['$totalAmount', 0.2] } }}},{$sort:{_id:1}},{$project:{_id:0,week:"$_id", totalRevenue:'$totalRevenue'}}])
+    }
+
 }

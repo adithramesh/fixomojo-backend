@@ -59,7 +59,6 @@ export class BookingService implements IBookingService{
               }
             };
   
-          // return { success: true, message: 'All bookings of this user sent.', bookingList:bookingList };
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (error:any) {
           console.error("Error in fetching bookings in service layer:", error);
@@ -124,7 +123,7 @@ export class BookingService implements IBookingService{
         }
       }
     
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+       
       // async countBookings():Promise<any>{
       //   try {
       //     const count = await this._bookingRepository.countBookings()
@@ -168,16 +167,15 @@ export class BookingService implements IBookingService{
                   //     return { success: false, message: "Failed to send OTP", status: 500 };
                   // }
                   console.log("otp for work completion", otp);
-                   // Notify the User (customer) about OTP for work completion verification
+                
                   await this._notificationService.createNotification(
-                    booking.userId, // Recipient: The user who booked
+                    booking.userId, 
                     Role.USER,
                     NotificationType.SystemAlert, 
                     `Your booking OTP for ${booking.subServiceName} is: ${otp}. Please provide this to the technician to complete the work.`, // Message
                     { bookingId: booking._id as string, technicianId: booking.technicianId, otp: otp } 
                   );
-                  // You could also notify the technician that the OTP was sent to the user
-                  // await this._notificationService.createNotification(...)
+            
                   return {
                       success: true,
                       message: "Success in initiate bookings completion",
@@ -221,7 +219,6 @@ export class BookingService implements IBookingService{
             
                 if(updatedBooking){
 
-                   // Notify the User (customer) about booking completion and payment
                     await this._notificationService.createNotification(
                       updatedBooking.userId,
                       Role.USER,
@@ -229,9 +226,6 @@ export class BookingService implements IBookingService{
                       `Your booking for ${updatedBooking.subServiceName} has been successfully completed and payment processed.`,
                       { bookingId: updatedBooking._id, totalAmount: updatedBooking.totalAmount }
                     );
-
-
-                  
 
                   console.log("updatedBooking",updatedBooking );
                   const booking = await this._bookingRepository.findBookingById(bookingId)
@@ -245,7 +239,6 @@ export class BookingService implements IBookingService{
                   await this._transactionService.logTransaction({userId:booking.technicianId,amount:partnerShare,transactionType:'credit',purpose:"commission",role:"partner",referenceId: bookingId!});
                   await this._transactionService.logTransaction({userId:config.ADMIN_ID,amount:adminShare,transactionType:'credit',purpose:"commission", role:"admin", referenceId: bookingId!});
 
-                                      // Notify the Technician (partner) about booking completion and their earnings
                     await this._notificationService.createNotification(
                       updatedBooking.technicianId,
                       Role.PARTNER,
@@ -254,7 +247,7 @@ export class BookingService implements IBookingService{
                       { bookingId: updatedBooking._id, earnedAmount: partnerShare }
                     );
 
-                      // Notify the Admin about booking completion and commission
+                    
                     await this._notificationService.createNotification(
                       config.ADMIN_ID , 
                       Role.ADMIN,

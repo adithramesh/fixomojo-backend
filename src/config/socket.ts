@@ -15,7 +15,17 @@ export class SocketConfig {
     @inject(TYPES.IChatService) private _chatService: IChatService
   ) {}
 
-  initSocket(httpServer: HttpServer): Server {
+  /**
+   * Initializes the Socket.IO server with the provided HTTP server.
+   * This method must be called once at the start of the application.
+   * @param httpServer The Node.js HTTP server instance.
+   */
+  initSocket(httpServer: HttpServer): void {
+    if (this.io) {
+      console.warn('Socket.IO is already initialized.');
+      return;
+    }
+
     this.io = new Server(httpServer, {
       cors: {
         origin: config.CLIENT_URL,
@@ -26,26 +36,28 @@ export class SocketConfig {
     });
 
     this.io.use(socketAuthMiddleware);
+    this.initListeners();
+  }
 
+ 
+  private initListeners(): void {
     this.io.on('connection', (socket: Socket) => {
       console.log('New client connected:', socket.id);
-
       const user = socket.data.user;
-      const bookingId = socket.handshake.query.bookingId as string;
 
-      // **Crucial for Notifications: Join user-specific room**
-      // This ensures we can target specific users for notifications.
+      // Join user-specific room
       if (user && user.id) {
         socket.join(`user:${user.id}`);
         console.log(`User ${user.id} joined personal room user:${user.id}`);
       }
-      // --- End crucial part ---
 
-
-      if (bookingId) {
-        socket.join(`booking:${bookingId}`);
-        console.log(`User ${user.id} joined room booking:${bookingId}`);
-      }
+      // New event listener for joining a booking room
+      socket.on('joinBookingRoom', (bookingId: string) => {
+        if (bookingId) {
+            socket.join(`booking:${bookingId}`);
+            console.log(`User ${user.id} joined booking room: booking:${bookingId}`);
+        }
+      });
 
       socket.on('message', async (data: { bookingId: string; messageText: string }) => {
         try {
@@ -66,21 +78,15 @@ export class SocketConfig {
             createdAt: savedMessage.createdAt,
           });
 
-           // **Trigger Notification for Chat Message:**
-          // Notify the recipient of the chat message if they are not the sender
+          // Trigger Notification for Chat Message
           const recipientId = user.id === savedMessage.userId.toString() ? savedMessage.technicianId : savedMessage.userId;
-          // const recipientRole = user.id === savedMessage.userId.toString() ? savedMessage.technicianRole : savedMessage.userRole; // Assuming these exist on savedMessage
-          if (recipientId && recipientId.toString() !== user.id) { // Don't notify self
-            // You would need to inject NotificationService here too, or have a shared event bus
-            // For simplicity now, let's add a direct emit method to SocketConfig
+          if (recipientId && recipientId.toString() !== user.id) {
             this.emitToUser(recipientId.toString(), 'newChatMessage', {
                 bookingId: savedMessage.bookingId.toString(),
                 senderId: user.id,
                 message: messageText,
-                // ... other chat-specific data for immediate display
             });
           }
-
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (error: any) {
           socket.emit('error', {
@@ -95,15 +101,15 @@ export class SocketConfig {
         console.log('Client disconnected:', socket.id);
       });
     });
-
-    return this.io;
   }
 
   getIo(): Server {
+    if (!this.io) {
+      throw new Error("Socket.IO not initialized. Call initSocket() first.");
+    }
     return this.io;
   }
 
-// **New method to emit to a specific user's room**
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   emitToUser(userId: string, event: string, data: any): void {
     if (!this.io) {
@@ -114,7 +120,6 @@ export class SocketConfig {
     console.log(`Emitted event '${event}' to user:${userId} with data:`, data);
   }
 
-  // **New method to emit to a specific room (e.g., 'adminNotifications')**
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   emitToRoom(roomName: string, event: string, data: any): void {
     if (!this.io) {
@@ -124,5 +129,4 @@ export class SocketConfig {
     this.io.to(roomName).emit(event, data);
     console.log(`Emitted event '${event}' to room:${roomName} with data:`, data);
   }
-
 }

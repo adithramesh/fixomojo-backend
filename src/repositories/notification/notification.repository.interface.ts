@@ -1,8 +1,8 @@
 import { FilterQuery } from 'mongoose';
-import { INotification } from '../../models/notification.model'; // Assuming this path
+import { INotification } from '../../models/notification.model'; 
 
 export interface INotificationRepository {
-  // Inherited from BaseRepository:
+
   create(data: Partial<INotification>): Promise<INotification>;
   findById(id: string): Promise<INotification | null>;
   findOne(filter: FilterQuery<INotification>): Promise<INotification | null>;
@@ -11,7 +11,6 @@ export interface INotificationRepository {
   delete(id: string): Promise<boolean>;
   count(filter: FilterQuery<INotification>): Promise<number>;
 
-  // Notification-specific methods:
   findByRecipientId(
     recipientId: string,
     filter?: FilterQuery<INotification>,
@@ -19,6 +18,6 @@ export interface INotificationRepository {
     skip?: number
   ): Promise<INotification[]>;
   getUnreadCount(recipientId: string): Promise<number>;
-  markAsRead(notificationId: string): Promise<INotification | null>;
-  markAllAsRead(recipientId: string): Promise<number>; // Returns count of modified docs
+  markAsRead(notificationId: string, actionTaken?: string): Promise<INotification | null>;
+  markAllAsRead(recipientId: string): Promise<number>; 
 }

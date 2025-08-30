@@ -18,6 +18,10 @@ interface Config{
     CLOUDINARY_API_KEY:string;
     CLOUDINARY_API_SECRET:string;
     ADMIN_ID:string;
+    STREAM_API_KEY:string;
+    STREAM_API_SECRET: string;
+    ACCESS_TOKEN_EXPIRY:string;
+    REFRESH_TOKEN_EXPIRY:string;
 }
 
 const projectRoot = process.cwd();
@@ -40,7 +44,11 @@ const config:Config = {
     CLOUDINARY_NAME:process.env.CLOUDINARY_NAME as string,
     CLOUDINARY_API_KEY:process.env.CLOUDINARY_API_KEY as string,
     CLOUDINARY_API_SECRET:process.env.CLOUDINARY_API_SECRET as string,
-    ADMIN_ID:process.env.ADMIN_ID as string
+    ADMIN_ID:process.env.ADMIN_ID as string,
+    STREAM_API_KEY:process.env.STREAM_API_KEY as string,
+    STREAM_API_SECRET:process.env.STREAM_API_SECRET as string,
+    ACCESS_TOKEN_EXPIRY:process.env.ACCESS_TOKEN_EXPIRY as string,
+    REFRESH_TOKEN_EXPIRY:process.env.REFRESH_TOKEN_EXPIRY as string
 }
 
 

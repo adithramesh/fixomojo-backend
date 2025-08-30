@@ -1,11 +1,11 @@
 import { Response } from 'express';
 import { inject, injectable } from 'inversify';
-import { TYPES } from '../../types/types'; // Assuming this path
-import { HttpStatus } from '../../utils/http-status.enum'; // Assuming this path
-import { AuthRequest } from '../../middlewares/auth.middleware'; // Assuming this path
-import { INotificationService } from '../../services/notification/notification.service.interface'; // Assuming this path
+import { TYPES } from '../../types/types'; 
+import { HttpStatus } from '../../utils/http-status.enum';
+import { AuthRequest } from '../../middlewares/auth.middleware'; 
+import { INotificationService } from '../../services/notification/notification.service.interface'; 
 import { INotificationController } from './notification.controller.interface';
-import { PaginationRequestDTO } from '../../dto/admin.dto'; // Assuming this path for your DTOs
+import { PaginationRequestDTO } from '../../dto/admin.dto'; 
 import mongoose from 'mongoose';
 
 @injectable()
@@ -14,10 +14,7 @@ export class NotificationController implements INotificationController {
     @inject(TYPES.INotificationService) private _notificationService: INotificationService
   ) {}
 
-  /**
-   * GET /api/notifications
-   * Fetches paginated notifications for the authenticated user.
-   */
+ 
   async getNotifications(req: AuthRequest, res: Response): Promise<void> {
     try {
       const userId = req.user?.id;
@@ -30,15 +27,13 @@ export class NotificationController implements INotificationController {
         return;
       }
 
-      // Extract pagination parameters from query string
-      // Convert to numbers, provide defaults
       const page = parseInt(req.query.page as string) || 1;
       const pageSize = parseInt(req.query.pageSize as string) || 10;
       const sortBy = (req.query.sortBy as string) || 'createdAt';
       const sortOrder = (req.query.sortOrder as string) || 'desc';
       const searchTerm = req.query.searchTerm as string;
 
-      // Filter object can be passed as a JSON string in a query parameter, e.g., ?filter={"read":false}
+    
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       let filter: Record<string, any> = {};
       if (req.query.filter) {
@@ -71,7 +66,7 @@ export class NotificationController implements INotificationController {
 
       res.status(HttpStatus.SUCCESS).json({
         success: true,
-        data: paginatedNotifications, // This will be your PaginatedResponseDTO
+        data: paginatedNotifications, 
         message: 'Notifications fetched successfully.',
         status: HttpStatus.SUCCESS,
       });
@@ -121,14 +116,12 @@ export class NotificationController implements INotificationController {
     }
   }
 
-  /**
-   * PUT /api/notifications/:id/read
-   * Marks a specific notification as read.
-   */
+  
   async markNotificationAsRead(req: AuthRequest, res: Response): Promise<void> {
     try {
       const userId = req.user?.id;
       const notificationId = req.params.id;
+      const { actionTaken } = req.body;
 
       if (!userId) {
         res.status(HttpStatus.UNAUTHORIZED).json({
@@ -146,12 +139,7 @@ export class NotificationController implements INotificationController {
         });
         return;
       }
-
-      // Important: Add a check here to ensure the user is authorized to mark *this* notification as read.
-      // This can be done by fetching the notification and checking its recipientId against the userId.
-      // For this minimal implementation, we'll rely on the service to handle potential internal errors if the ID doesn't belong.
-      // A more robust solution might pass userId to markAsRead for server-side authorization.
-      const isMarked = await this._notificationService.markAsRead(notificationId);
+      const isMarked = await this._notificationService.markAsRead(notificationId,actionTaken);
 
       if (isMarked) {
         res.status(HttpStatus.SUCCESS).json({
@@ -215,6 +203,47 @@ export class NotificationController implements INotificationController {
       res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
         success: false,
         message: error.message || 'Failed to mark all notifications as read.',
+        status: HttpStatus.INTERNAL_SERVER_ERROR,
+      });
+    }
+  }
+
+  async createVideoCallNotification(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      const senderId = req.user?.id;
+      const { recipientId, recipientRole, type, message, payload } = req.body;
+
+      if (!senderId || !recipientId || !type || !message) {
+        res.status(HttpStatus.BAD_REQUEST).json({
+          success: false,
+          message: 'Missing required fields: recipientId, type, or message.',
+          status: HttpStatus.BAD_REQUEST,
+        });
+        return;
+      }
+
+      await this._notificationService.createNotification(
+        recipientId,
+        recipientRole,
+        type,
+        message,
+        payload,
+        new mongoose.Types.ObjectId(senderId),
+        req.user?.role
+      );
+
+      res.status(HttpStatus.SUCCESS).json({
+        success: true,
+        message: 'Notification created and sent successfully.',
+        status: HttpStatus.SUCCESS,
+      });
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      console.error('Error in NotificationController.createNotification:', error);
+      res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+        success: false,
+        message: error.message || 'Failed to create notification.',
         status: HttpStatus.INTERNAL_SERVER_ERROR,
       });
     }

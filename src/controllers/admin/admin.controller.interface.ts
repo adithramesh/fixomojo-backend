@@ -1,6 +1,7 @@
 import {Request, Response} from "express"
-import { ServiceResponseDTO, ServiceRequestDTO, UserResponseDTO, PaginatedResponseDTO, SubServiceResponseDTO } from "../../dto/admin.dto"
+import { ServiceResponseDTO, ServiceRequestDTO, UserResponseDTO, PaginatedResponseDTO, SubServiceResponseDTO, AdminDashboardResponseDTO } from "../../dto/admin.dto"
 import { AuthRequest } from "../../middlewares/auth.middleware";
+import { StreamTokenResponseDTO } from "../../dto/stream.dto";
 type EmptyParams = Record<string, never>;
 
 export interface IAdminController {
@@ -18,4 +19,6 @@ export interface IAdminController {
     updateService(req:Request, res:Response<ServiceResponseDTO>):Promise<void>
     updateSubService(req:Request, res:Response<SubServiceResponseDTO>):Promise<void>
     savedLocation(req:AuthRequest,res:Response<string>):Promise<void>
+    getDashboard(req:AuthRequest,res:Response<AdminDashboardResponseDTO>):Promise<void>
+    getStreamToken(req:AuthRequest,res: Response<StreamTokenResponseDTO>):Promise<void>
 }   

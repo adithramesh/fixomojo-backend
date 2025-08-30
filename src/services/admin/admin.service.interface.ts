@@ -1,4 +1,4 @@
-import { PaginatedResponseDTO, PaginationRequestDTO, ServiceRequestDTO, ServiceResponseDTO, SubServiceRequestDTO, SubServiceResponseDTO, UserResponseDTO } from "../../dto/admin.dto";
+import { AdminDashboardResponseDTO, PaginatedResponseDTO, PaginationRequestDTO, ServiceRequestDTO, ServiceResponseDTO, SubServiceRequestDTO, SubServiceResponseDTO, UserResponseDTO } from "../../dto/admin.dto";
 
 export interface IAdminService {
     createService(serviceData:ServiceRequestDTO):Promise<ServiceResponseDTO>
@@ -15,4 +15,6 @@ export interface IAdminService {
     updateService(serviceId:string, serviceData:ServiceRequestDTO):Promise<ServiceResponseDTO>
     updateSubService(subServiceId:string, subServiceData:SubServiceRequestDTO):Promise<SubServiceResponseDTO>
     savedLocation(userId:string):Promise<string | undefined>
+    getDashboard(userId:string):Promise<AdminDashboardResponseDTO>
+    // generateStreamToken(userId: string): Promise<string>
 }

@@ -12,17 +12,6 @@ export class ServiceRepository extends BaseRepository<IService> implements IServ
         return  service
     }
 
-    // async findAllServices(): Promise<string[]> {
-    //     const services = await this.find()
-    //     const serviceNames :string[]=services.map(service=>service.serviceName)
-    //     return serviceNames
-    // }
-    //   async findAllServices(): Promise<IService> {
-    //     const services = await this.find()
-        
-    //     return services
-    // }
-
     async findServiceById(id: string): Promise<IService | null> {
         return await this.findById(id)
     }
@@ -32,8 +21,8 @@ export class ServiceRepository extends BaseRepository<IService> implements IServ
     }
     
     async findServciesPaginated(skip: number, limit: number, sortBy: string, sortOrder: string, filter: Record<string, unknown>): Promise<IService[]> {
-        const sortDirection: 1 | -1 = sortOrder === 'asc' ? 1 : -1; // Explicitly type sortDirection
-        const sortOptions: Record<string, 1 | -1> = sortBy ? { [sortBy]: sortDirection } : {}; // Use Record and handle empty sortBy
+        const sortDirection: 1 | -1 = sortOrder === 'asc' ? 1 : -1; 
+        const sortOptions: Record<string, 1 | -1> = sortBy ? { [sortBy]: sortDirection } : {}; 
          return await Service.find(filter).sort(sortOptions).skip(skip).limit(limit).exec();
     }
 

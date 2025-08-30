@@ -42,7 +42,7 @@ export class AuthService implements IAuthService {
             username,
             email,
             phoneNumber,
-            password: hashedPassword, // Mongoose expects "password", not "passwordHash"
+            password: hashedPassword, 
             role,
             serviceType,
             adminCode,
@@ -103,16 +103,17 @@ export class AuthService implements IAuthService {
             if (!user.phoneVerified) {
                 await this._userRepository.updateUser(tempUserId, { phoneVerified: true });
             }
+            
             const accessToken = jwt.sign(
                 { id: userId, role: user.role },
                 config.JWT_SECRET,
-                { expiresIn: "15m" }
+                { expiresIn: config.ACCESS_TOKEN_EXPIRY as jwt.SignOptions["expiresIn"] }
             );
             
             const refreshToken = jwt.sign(
                 { id: userId },
                 config.JWT_SECRET,
-                { expiresIn: "7d" }
+                { expiresIn: config.REFRESH_TOKEN_EXPIRY as jwt.SignOptions["expiresIn"] }
             );
             return {
                 success: true,
@@ -244,14 +245,11 @@ export class AuthService implements IAuthService {
 
     async resetPassword(resetData: ResetPasswordRequestDTO): Promise<SignupResponseDTO> {
         const { tempUserId, reset_token, newPassword } = resetData;
-        // console.log("tempuserid 1", tempUserId);
-        // console.log("newPassword", newPassword);
+
         try {
             jwt.verify(reset_token, config.JWT_SECRET);
             
             const hashedPassword = await this._passwordService.hash(newPassword);
-            // console.log("hashedPassword",hashedPassword);
-            // console.log("tempuserid 2", tempUserId);
             await this._userRepository.updateUser(tempUserId, { password: hashedPassword });
             
             return {

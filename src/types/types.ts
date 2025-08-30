@@ -55,4 +55,6 @@ export const TYPES={
     NotificationRoutes: Symbol.for("NotificatonRoutes"),
 
     SocketConfig: Symbol.for('SocketConfig'),
+
+    IStreamService: Symbol.for('IStreamService')
 }

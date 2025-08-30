@@ -19,35 +19,28 @@ export class NotificationService implements INotificationService {
 
   async createNotification( 
     recipientId: string,
-    recipientRole: string|undefined, // Cast to Role enum if you strictly control it
+    recipientRole: string|undefined, 
     type: NotificationType,
     message: string,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     payload?: any,
     senderId?: mongoose.Types.ObjectId,
-    senderRole?: string // Cast to Role enum if strictly controlled
+    senderRole?: string 
   ): Promise<INotification> {
     const notificationData: Partial<INotification> = {
       recipientId,
-      recipientRole: recipientRole as Role, // Ensure type compatibility with Role enum
+      recipientRole: recipientRole as Role, 
       type,
       message,
-      payload: payload || {}, // Ensure payload is always an object
+      payload: payload || {}, 
       senderId,
-      senderRole: senderRole as Role, // Ensure type compatibility with Role enum
-      read: false, // New notifications are unread by default
+      senderRole: senderRole as Role, 
+      read: false, 
+      actionTaken: undefined
     };
 
     const newNotification = await this._notificationRepository.create(notificationData);
-
-    // --- Socket.IO Integration ---
-    // Emit the notification via Socket.IO to the specific recipient's room
-    // The recipientId should be unique per user/partner/admin to map to their socket room
     this._socketService.emitToUser(newNotification.recipientId.toString(), 'newNotification', newNotification);
-    // You might also emit to an admin-specific room if the notification is for admin only
-    // Example: if (recipientRole === Role.ADMIN) this._socketService.emitToRoom('adminNotifications', newNotification);
-    // --- End Socket.IO Integration ---
-
     return newNotification;
   }
 
@@ -55,29 +48,24 @@ export class NotificationService implements INotificationService {
     pagination: PaginationRequestDTO,
     userId: string
   ): Promise<PaginatedResponseDTO<INotification[]>> {
-    // sortBy, sortOrder,
-    const { page, pageSize,      searchTerm, filter = {} } = pagination;
+    const { page, pageSize, searchTerm, filter = {} } = pagination;
     const skip = (page - 1) * pageSize;
 
-    // Apply any additional filters from the DTO, e.g., filter.read = false
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const queryFilter: any = { ...filter };
     if (searchTerm) {
-      // Example: search within message text
       queryFilter.message = { $regex: searchTerm, $options: 'i' };
     }
 
-    // Fetch the paginated notifications
     const notifications = await this._notificationRepository.findByRecipientId(
       userId,
       queryFilter,
-      pageSize, // limit
-      skip      // skip
+      pageSize, 
+      skip      
     );
 
-    // Get the total count of notifications matching the filter for this recipient
     const totalNotifications = await this._notificationRepository.count({
-      ...queryFilter, // Use the same filters as the find query
+      ...queryFilter, 
       recipientId: userId,
     });
 
@@ -94,8 +82,8 @@ export class NotificationService implements INotificationService {
     return this._notificationRepository.getUnreadCount(userId);
   }
 
-  async markAsRead(notificationId: string): Promise<boolean> {
-    const updated = await this._notificationRepository.markAsRead(notificationId);
+  async markAsRead(notificationId: string, actionTaken?: string): Promise<boolean> {
+    const updated = await this._notificationRepository.markAsRead(notificationId, actionTaken);
     return !!updated; // Return true if a document was updated
   }
 

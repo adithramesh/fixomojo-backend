@@ -7,6 +7,7 @@ import { HttpStatus } from "../../utils/http-status.enum";
 import { AuthRequest } from '../../middlewares/auth.middleware';
 import { IUserService } from "../../services/users/user.service.interface";
 import { uploadToCloudinary } from "../../utils/cloudinary.uploader";
+import { PartnerDashboardResponseDTO } from "../../dto/partner.dto";
 
 @injectable()
 export class UserController implements IUserController{
@@ -86,4 +87,15 @@ export class UserController implements IUserController{
                 res.status(HttpStatus.INTERNAL_SERVER_ERROR)
             }
     }
+
+    async getPartnerDashboard(req: AuthRequest, res: Response<PartnerDashboardResponseDTO>): Promise<void> {
+        try {
+          const userId = req.user?.id.toString() ||""
+          const response = await this._userService.getPartnerDashboard(userId)
+          res.status(HttpStatus.SUCCESS).json(response)
+        } catch (error) {
+          console.log("error occured", error);
+          res.status(HttpStatus.INTERNAL_SERVER_ERROR)
+        }
+      }
 }

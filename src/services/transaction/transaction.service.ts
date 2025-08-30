@@ -1,7 +1,6 @@
 import { inject, injectable } from "inversify";
 import { ITransaction } from "../../models/transaction.model";
 import { ITransactionService } from "./transaction.service.interface";
-// import { TransactionRepository } from "../../repositories/transaction/transaction.repository";
 import { TYPES } from "../../types/types";
 import { PaginationRequestDTO } from "../../dto/admin.dto";
 import { ITransactionRepository } from "../../repositories/transaction/transaction.repository.interface";
@@ -9,7 +8,6 @@ import { ITransactionRepository } from "../../repositories/transaction/transacti
 @injectable()
 export class TransactionService implements ITransactionService{
     constructor(
-        // @inject(TYPES.TransactionRepository) private _transactionRepository:TransactionRepository
         @inject(TYPES.ITransactionRepository) private _transactionRepository:ITransactionRepository
     ){}
     async logTransaction(data: Partial<ITransaction>): Promise<{transaction?:Partial<ITransaction>,success:boolean,  message:string}> {

@@ -2,7 +2,6 @@ import { Router } from 'express'
 import { inject, injectable } from 'inversify'
 import { TYPES } from '../types/types'
 import { authMiddleware } from '../middlewares/auth.middleware'
-// import { BookingController } from '../controllers/booking/booking.controller'
 import { IBookingController } from '../controllers/booking/booking.controller.interface'
 
 @injectable()

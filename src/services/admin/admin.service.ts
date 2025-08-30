@@ -1,5 +1,5 @@
 import { inject, injectable } from "inversify";
-import { PaginatedResponseDTO, PaginationRequestDTO, ServiceRequestDTO, ServiceResponseDTO, SubServiceRequestDTO, SubServiceResponseDTO, UserResponseDTO } from "../../dto/admin.dto";
+import { AdminDashboardResponseDTO, PaginatedResponseDTO, PaginationRequestDTO, ServiceRequestDTO, ServiceResponseDTO, SubServiceRequestDTO, SubServiceResponseDTO, UserResponseDTO } from "../../dto/admin.dto";
 import { IAdminService } from "./admin.service.interface";
 import { TYPES } from "../../types/types";
 import { IService} from "../../models/service.models";
@@ -9,6 +9,9 @@ import { IUser } from "../../models/user.model";
 import { IServiceRepository } from "../../repositories/service/service.repository.interface";
 import { ISubServiceRepository } from "../../repositories/sub-service/sub-service.repository.interface";
 import { IUserRepository } from "../../repositories/user/user.repository.interface";
+import { IBookingRepository } from "../../repositories/booking/booking.repository.interface";
+import { IWalletService } from "../wallet/wallet.service.interface";
+import { IBookingService } from "../booking/booking.service.interface";
 
 
 @injectable()
@@ -16,7 +19,10 @@ export class AdminService implements IAdminService {
     constructor(
         @inject(TYPES.IServiceRepository) private _serviceRepository:IServiceRepository,
         @inject(TYPES.IUserRepository) private _userRepository:IUserRepository,
-        @inject(TYPES.ISubServiceRepository) private _subServiceRepository:ISubServiceRepository
+        @inject(TYPES.ISubServiceRepository) private _subServiceRepository:ISubServiceRepository,
+        @inject(TYPES.IBookingRepository) private _bookingRepository:IBookingRepository,
+        @inject(TYPES.IBookingService) private _bookingService:IBookingService,
+        @inject(TYPES.IWalletService) private _walletService:IWalletService,
     ){}
     async createService(serviceData: ServiceRequestDTO): Promise<ServiceResponseDTO> {
         const { serviceName, image, description } = serviceData;
@@ -49,23 +55,19 @@ export class AdminService implements IAdminService {
         throw new Error('Service not found');
       }
 
-      // Create sub-service with serviceId
       const subServiceDataWithServiceId = {
         ...subServiceData,
         serviceId: new mongoose.Types.ObjectId(serviceId),
-        // serviceId,
         serviceName:parentService.serviceName,
-        status: subServiceData.status || 'active' // Default status
+        status: subServiceData.status || 'active' 
       };
 
       const createdSubService:ISubService = await this._subServiceRepository.createSubService(subServiceDataWithServiceId);
 
-      // Return SubServiceResponseDTO
       return {
         id: (createdSubService._id as mongoose.Types.ObjectId).toString(),
         subServiceName: createdSubService.subServiceName,
         serviceId: createdSubService.serviceId.toString(),
-        // serviceId: createdSubService.serviceId,
         serviceName: createdSubService.serviceName,
         price: createdSubService.price,
         description: createdSubService.description,
@@ -201,9 +203,8 @@ export class AdminService implements IAdminService {
       const subServiceDTOs: SubServiceResponseDTO[] = subServices.map(subService => ({
         id: (subService._id as mongoose.Types.ObjectId).toString(),
         subServiceName: subService.subServiceName,
-        // serviceId: subService.serviceId.toString(),
         serviceId: subService.serviceId ? subService.serviceId._id.toString() : '',
-        serviceName: subService.serviceName || '', // Populated from Service
+        serviceName: subService.serviceName || '', 
         image: subService.image || '',
         description: subService.description || '',
         status: subService.status,
@@ -253,7 +254,6 @@ export class AdminService implements IAdminService {
       return {
         id:(subService._id as mongoose.Types.ObjectId).toString(),
         serviceId:(subService.serviceId._id as mongoose.Types.ObjectId).toString(),
-        // serviceName: subService.serviceId.serviceName,
         subServiceName:subService?.subServiceName,
         description:subService?.description,
         image:subService?.image,
@@ -277,7 +277,6 @@ export class AdminService implements IAdminService {
 
         if (licenseStatus) {
           updates.licenseStatus = licenseStatus;
-          // Update status based on licenseStatus for partners
           if (user.role === 'partner') {
             updates.status = licenseStatus === 'approved' ? 'active' : 'pending';
           }
@@ -329,6 +328,7 @@ export class AdminService implements IAdminService {
          if(!updatedUser){
           throw new Error('Failed to retrieve updated service');
         }
+        
         return {
           id: (updatedUser._id as mongoose.Types.ObjectId).toString(),
           username: updatedUser.username,
@@ -468,4 +468,24 @@ export class AdminService implements IAdminService {
         throw error;
       }
     }
+
+    async getDashboard(userId:string): Promise<AdminDashboardResponseDTO> {
+      try {
+        const totalCustomers = await this._userRepository.countUsers({role:'user'})
+        const totalBookings = await this._bookingRepository.countBookings({});
+        const activePartners = await this._userRepository.countUsers({role:'partner', status:'active'})
+        let totalRevenue = (await this._walletService.getWallet(userId))?.wallet?.balance
+        if(!totalRevenue){
+          totalRevenue=0
+        }
+        const bookingStatusDistribution=await this._bookingRepository.getBookingStatusDistribution()
+        const revenueTrends = await this._bookingRepository.getRevenueTrends()
+        return {totalCustomers,totalBookings,activePartners,totalRevenue, bookingStatusDistribution,revenueTrends}
+      } catch (error) {
+        console.error('Error in getDashboard:', error);
+        throw new Error('Failed to fetch dashboard data');
+      }
+    }
+
+    
 }

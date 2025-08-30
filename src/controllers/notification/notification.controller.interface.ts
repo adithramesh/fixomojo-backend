@@ -6,4 +6,5 @@ export interface INotificationController {
   getUnreadCount(req: AuthRequest, res: Response): Promise<void>;
   markNotificationAsRead(req: AuthRequest, res: Response): Promise<void>;
   markAllNotificationsAsRead(req: AuthRequest, res: Response): Promise<void>;
+  createVideoCallNotification(req: AuthRequest, res: Response): Promise<void>
 }

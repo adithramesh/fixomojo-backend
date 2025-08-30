@@ -32,6 +32,12 @@ export class AdminRoutes {
         //location
         this.router.patch('/partner/:id/location',this._adminController.updateUser.bind(this._adminController))
         this.router.get('/saved-location',this._adminController.savedLocation.bind(this._adminController))
+
+        //dashboard
+        this.router.get('/dashboard',this._adminController.getDashboard.bind(this._adminController))
+
+        //video-call
+        this.router.post('/stream-token',this._adminController.getStreamToken.bind(this._adminController))
     }
 
     public getRouter(){

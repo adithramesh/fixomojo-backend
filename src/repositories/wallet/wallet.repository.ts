@@ -9,7 +9,7 @@ export class WalletRepository extends BaseRepository<IWallet> implements IWallet
   }
 
 async findWalletByUserId(userId: string): Promise<IWallet | null> {
-  return this.findOne({ userId }); // Search by userId field
+  return this.findOne({ userId }); 
 }
 
 async updateBalance(userId: string, amount: number): Promise<IWallet | null> {

@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { PaginatedResponseDTO, PaginationRequestDTO, ServiceRequestDTO, ServiceResponseDTO, SubServiceRequestDTO, SubServiceResponseDTO, UserResponseDTO } from "../../dto/admin.dto";
+import { AdminDashboardResponseDTO, PaginatedResponseDTO, PaginationRequestDTO, ServiceRequestDTO, ServiceResponseDTO, SubServiceRequestDTO, SubServiceResponseDTO, UserResponseDTO } from "../../dto/admin.dto";
 import { IAdminController } from "./admin.controller.interface";
 import { inject, injectable } from "inversify";
 import { TYPES } from "../../types/types";
@@ -8,13 +8,17 @@ import { uploadToCloudinary } from "../../utils/cloudinary.uploader";
 import mongoose from "mongoose";
 import { AuthRequest } from "../../middlewares/auth.middleware";
 import { IAdminService } from "../../services/admin/admin.service.interface";
+import { StreamTokenResponseDTO } from "../../dto/stream.dto";
+import { IStreamService } from "../../services/stream/stream.service.interface";
+
 type EmptyParams = Record<string, never>;
 
 @injectable()
 export class AdminController implements IAdminController {
   constructor(
-    @inject(TYPES.IAdminService) private _adminService: IAdminService
-  ) {}
+    @inject(TYPES.IAdminService) private _adminService: IAdminService,
+    @inject(TYPES.IStreamService) private _streamService : IStreamService
+  ) {} 
   async addService(
     req: Request<EmptyParams, object, ServiceRequestDTO>,
     res: Response<ServiceResponseDTO>
@@ -24,7 +28,6 @@ export class AdminController implements IAdminController {
       if (req.file) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const uploadResult:any = await uploadToCloudinary(req.file.buffer, 'services');
-        // serviceData.image = uploadResult.secure_url;
         serviceData.image = uploadResult.public_id;
       }
       console.log("serviceData",serviceData);
@@ -43,7 +46,6 @@ export class AdminController implements IAdminController {
       if (req.file) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const uploadResult:any = await uploadToCloudinary(req.file.buffer, 'sub-services');
-        // subServiceData.image = uploadResult.secure_url;
         subServiceData.image = uploadResult.public_id
       }
       console.log("create sub-service,controller layer, serviceId: ", serviceId);
@@ -111,14 +113,9 @@ export class AdminController implements IAdminController {
         sortOrder: (req.query.sortOrder as string) || 'asc',
         searchTerm: req.query.searchTerm as string || '',
         filter:  {},
-        
-        
-        // {
-        //   serviceId: req.query.serviceId ? { serviceId: req.query.serviceId as string } : {}
-        // }
+
       };
       if (req.query.serviceId) {
-            // pagination.filter.serviceId = req.query.serviceId as string;
             const serviceId = req.query.serviceId as string;
             if (mongoose.Types.ObjectId.isValid(serviceId)) {
                 pagination.filter.serviceId = serviceId;
@@ -272,6 +269,30 @@ export class AdminController implements IAdminController {
     } catch (error) {
       console.log("error occured", error);
       res.status(HttpStatus.INTERNAL_SERVER_ERROR)
+    }
+  }
+
+  async getDashboard(req: AuthRequest, res: Response<AdminDashboardResponseDTO>): Promise<void> {
+    try {
+      const userId = req.user?.id.toString() ||""
+      const response = await this._adminService.getDashboard(userId)
+      res.status(HttpStatus.SUCCESS).json(response)
+    } catch (error) {
+      console.log("error occured", error);
+      res.status(HttpStatus.INTERNAL_SERVER_ERROR)
+    }
+  }
+
+  async getStreamToken(req: AuthRequest, res: Response<StreamTokenResponseDTO>): Promise<void> {
+    try {
+      const userId = req.user?.id;
+      const token = await this._streamService.generateStreamToken(userId!);
+      // console.log("token from stream", token);
+      
+      res.status(HttpStatus.SUCCESS).json({success:true,message:'Token Generated', data:{token}, status:HttpStatus.SUCCESS})
+    } catch (error) {
+      console.error('Error generating Stream token:', error);
+      res.status(HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 }

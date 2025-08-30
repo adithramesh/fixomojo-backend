@@ -13,6 +13,7 @@ import { ITimeSlotService } from "../time-slot/time-slot.service.interface";
 import { IServiceRepository } from "../../repositories/service/service.repository.interface";
 import { UserResponseDTO } from "../../dto/admin.dto";
 import { IUserRepository } from "../../repositories/user/user.repository.interface";
+import { PartnerDashboardResponseDTO } from "../../dto/partner.dto";
 
 
 @injectable()
@@ -25,13 +26,6 @@ export class UserService implements IUserService {
         @inject(TYPES.ITransactionService) private _transactionService:ITransactionService,
         @inject(TYPES.IUserRepository) private _userRepository:IUserRepository,
     ){}
-    // async getHome(): Promise<HomeResponseDTO> {
-    //    const serviceData = await this._serviceRepository.findServciesPaginated()
-    //    const homeData={
-    //     serviceNames:serviceData
-    //    }
-    //    return homeData
-    // }
 
     async getHome(searchTerm:string): Promise<HomeResponseDTO> {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -66,7 +60,7 @@ export class UserService implements IUserService {
         timeSlotStart: data.timeSlotStart,
         timeSlotEnd: data.timeSlotEnd,
         bookingStatus: { $in: ['Hold', 'Confirmed'] },
-        createdAt: { $gt: new Date(Date.now() - 5 * 60 * 1000) }, // Only consider recent Holds
+        createdAt: { $gt: new Date(Date.now() - 5 * 60 * 1000) }, 
       });
 
       if (existingBooking) {
@@ -74,7 +68,7 @@ export class UserService implements IUserService {
       }
     const newBooking = await this._bookingRepository.createBooking({
       ...data,
-      bookingStatus: 'Hold', // 🟡 Initial temporary hold
+      bookingStatus: 'Hold',
       paymentStatus: 'Pending'
     });
 
@@ -149,12 +143,6 @@ export class UserService implements IUserService {
       return { success: false, message: 'Payment not completed.' };
     }
 
-    // const booking = await this._bookingRepository.findBookingById(bookingId as string);
-    // if (!booking || booking.bookingStatus !== 'Hold') {
-    //   return { success: false, message: 'Slot already taken or booking expired.' };
-    // }
-
-     // Check if booking is still in Hold and not expired
       const booking = await this._bookingRepository.findBookingById(bookingId as string);
       if (!booking || booking.bookingStatus !== 'Hold' || booking.createdAt < new Date(Date.now() - 5 * 60 * 1000)) {
         if (booking) {
@@ -167,7 +155,7 @@ export class UserService implements IUserService {
         return { success: false, message: 'Booking expired or invalid.' };
       }
 
-      // Check for conflicting Confirmed bookings
+     
       const conflictingBooking = await this._bookingRepository.findOneBooking({
         technicianId: booking.technicianId,
         timeSlotStart: booking.timeSlotStart,
@@ -185,7 +173,6 @@ export class UserService implements IUserService {
         return { success: false, message: 'Slot already booked by another user.' };
       }
 
-    // Proceed to confirm and block slot
     const blockResult = await this._timeSlotService.blockSlot({
       technicianId: booking.technicianId,
       bookingId: booking._id?booking._id.toString():"",
@@ -225,7 +212,6 @@ export class UserService implements IUserService {
         });
       } catch (logError) {
         console.error("Error logging transaction:", logError);
-        // Optionally, you can handle this error further, e.g., update booking status
       }
     }
     return { success: true, message: 'Payment verified and slot booked.', bookingData: updatedBooking! };
@@ -245,7 +231,7 @@ export class UserService implements IUserService {
     return { success: false, message: 'Slot already taken or booking expired.' };
   }
 
-  // 1. Attempt to debit wallet
+  
   const walletResult = await this._walletService.credit(
     newBooking.userId,
     -newBooking.totalAmount,
@@ -260,11 +246,10 @@ export class UserService implements IUserService {
   });
     return {
       success: false,
-      message: walletResult.message, // e.g., "Insufficient balance in wallet"
+      message: walletResult.message, 
     };
   }
 
-  // 2. Block the slot (only if wallet debit succeeded)
   const blockResult = await this._timeSlotService.blockSlot({
     technicianId: newBooking.technicianId,
     bookingId: newBooking._id?.toString() || '',
@@ -274,20 +259,15 @@ export class UserService implements IUserService {
     isCustomerBooking: true,
   });
 
-  if (!blockResult.success) {
-    // Optional: Refund wallet here if needed (not mandatory)
-    // await this._walletService.credit(newBooking.userId, +newBooking.totalAmount, 'user', newBooking._id);
-
+  if (!blockResult.success) {  
     return { success: false, message: blockResult.message };
   }
 
-  // 3. Confirm booking
   const updatedBooking = await this._bookingRepository.updateBooking(newBooking._id, {
     paymentStatus: 'Success',
     bookingStatus: 'Confirmed',
   });
 
-  // 4. Log transaction
   try {
     await this._transactionService.logTransaction({
       userId: newBooking.userId,
@@ -338,5 +318,25 @@ async updateProfile(userId:string, userData:object):Promise<Partial<UserResponse
       username:updatedUser.username
      }
   }
+  async getPartnerDashboard(userId:string): Promise<PartnerDashboardResponseDTO> {
+          try {
+            const totalBookings = await this._bookingRepository.countBookings({});
+            const completedBookings = await this._bookingRepository.countBookings({bookingStatus:'Completed'});
+            const cancelledBookings = await this._bookingRepository.countBookings({bookingStatus:'Cancelled'});
+            // const avgTaskPerDay = await this._userRepository.countUsers({role:'user'})
+            let totalRevenue = (await this._walletService.getWallet(userId))?.wallet?.balance
+            if(!totalRevenue){
+              totalRevenue=0
+            }
+            console.log("totalRevenue, totalBookings, completedBookings, cancelledBookings", totalRevenue, totalBookings, completedBookings, cancelledBookings);
+            
+            return {totalRevenue, totalBookings, completedBookings, cancelledBookings}
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          } catch (error:any) {
+            console.error("Error in saved location service:", error);
+            throw error;
+          }
+        }
+  
 
 }
