@@ -12,6 +12,9 @@ import { IUserRepository } from "../../repositories/user/user.repository.interfa
 import { IBookingRepository } from "../../repositories/booking/booking.repository.interface";
 import { IWalletService } from "../wallet/wallet.service.interface";
 import { IBookingService } from "../booking/booking.service.interface";
+import { ServiceStatus } from "../../utils/service-status.enum";
+import { UserStatus } from "../../utils/user-status.enum";
+import { LicenseStatus } from "../../utils/partner-license-status.enum";
 
 
 @injectable()
@@ -48,8 +51,6 @@ export class AdminService implements IAdminService {
     
     async createSubService(serviceId: string, subServiceData: SubServiceRequestDTO): Promise<SubServiceResponseDTO> {
     try {
-      console.log("create sub-service, service layer, serviceId: ", serviceId);
-      console.log("create sub-service,service layer, subServiceData: ", subServiceData);
       const parentService = await this._serviceRepository.findServiceById(serviceId);
       if (!parentService) {
         throw new Error('Service not found');
@@ -115,7 +116,6 @@ export class AdminService implements IAdminService {
           experience: user.experience || 2,
           createdAt: user.createdAt ? user.createdAt.toISOString() : ''
         }));
-        console.log("user DTO", userDTOs);
         
         return {
           items: userDTOs,
@@ -141,9 +141,6 @@ export class AdminService implements IAdminService {
           { 'subServices.subServiceName': { $regex: searchTerm, $options: 'i' } }
         ];
         }
-
-
-        console.log("filter", filter);
         
         const services = await this._serviceRepository.findServciesPaginated(skip,pageSize,sortBy?sortBy:'', sortOrder?sortOrder:'',filter?filter:{})
         const totalServices = await this._serviceRepository.countServices(filter)
@@ -181,10 +178,6 @@ export class AdminService implements IAdminService {
       if (filter.serviceId) {
         filter.serviceId = new mongoose.Types.ObjectId(filter.serviceId);
       }
-
-      
-
-      console.log('Filter applied1:', filter);
 
       const subServices = await this._subServiceRepository.findSubServicesPaginated(
         skip,
@@ -246,7 +239,6 @@ export class AdminService implements IAdminService {
   async getSubServiceById(subServiceId:string):Promise<SubServiceResponseDTO>{
     try {
       const subService = await this._subServiceRepository.findById(subServiceId)
-      console.log("subService: ", subService);
       
       if (!subService) {
       throw new Error(`Sub-service with ID ${subServiceId} not found`);
@@ -278,21 +270,18 @@ export class AdminService implements IAdminService {
         if (licenseStatus) {
           updates.licenseStatus = licenseStatus;
           if (user.role === 'partner') {
-            updates.status = licenseStatus === 'approved' ? 'active' : 'pending';
+            updates.status = licenseStatus === LicenseStatus.APPROVED ? LicenseStatus.ACTIVE : LicenseStatus.PENDING;
           }
         }
       
         else {
-          console.log("else block");
-          updates.status = user.status === 'active' ? 'blocked' : 'active';
+          updates.status = user.status === UserStatus.ACTIVE ? UserStatus.BLOCKED : UserStatus.ACTIVE;
         }
-        console.log("updates", updates);
         
         const upus =await this._userRepository.updateUser(userId, updates);
         console.log("upus", upus);
           
         const updatedUser: IUser | null = await this._userRepository.findUserById(userId);
-        console.log("updatedUser", updatedUser);
         
         if(!updatedUser){
           throw new Error('Failed to retrieve updated user');
@@ -314,14 +303,14 @@ export class AdminService implements IAdminService {
       }
     }
 
-    async updateUser(userId: string, updateData: Partial<IUser>): Promise<UserResponseDTO> {
+    // async updateUser(userId: string, updateData: Partial<IUser>): Promise<UserResponseDTO> {
+     async updateUser(userId: string, updateData: {location:{address:string; latitude:number; longitude:number}}): Promise<UserResponseDTO> {
       try {
         const user = await this._userRepository.findUserById(userId)
         if(!user){
           throw new Error('Service not found to update'); 
         }
-        console.log("update data in service", updateData);
-        
+
         await this._userRepository.updateUser(userId, updateData)
 
         const updatedUser = await this._userRepository.findUserById(userId)
@@ -353,7 +342,8 @@ export class AdminService implements IAdminService {
           throw new Error('Service not found to update status'); 
         }
 
-        const newStatus = service.status === 'active' ? 'blocked' : 'active';
+        // const newStatus = service.status === 'active' ? 'blocked' : 'active';
+        const newStatus = service.status === ServiceStatus.ACTIVE ? ServiceStatus.BLOCKED : ServiceStatus.ACTIVE;
         await this._serviceRepository.updateService(serviceId, { status: newStatus });
 
         const updatedService: IService | null = await this._serviceRepository.findServiceById(serviceId);
@@ -380,7 +370,8 @@ export class AdminService implements IAdminService {
           throw new Error('Service not found to update status'); 
         }
 
-        const newStatus = subService.status === 'active' ? 'blocked' : 'active';
+        // const newStatus = subService.status === 'active' ? 'blocked' : 'active';
+        const newStatus = subService.status === ServiceStatus.ACTIVE ? ServiceStatus.BLOCKED : ServiceStatus.ACTIVE;
         await this._subServiceRepository.updateSubService(subServiceId, { status: newStatus });
 
         const updatedSubService: ISubService | null = await this._subServiceRepository.findById(subServiceId);
@@ -429,18 +420,12 @@ export class AdminService implements IAdminService {
     async updateSubService(subServiceId:string, subServiceData:SubServiceRequestDTO):Promise<SubServiceResponseDTO>{
       try {
         const subService = await this._subServiceRepository.findById(subServiceId)
-        console.log("update sub-service, service layer, serviceId: ", subServiceId);
-        console.log("update sub-service,service layer, subServiceData: ", subServiceData);
         if(!subService){
           throw new Error('Sub-service not found to update'); 
         }
-        console.log("subServiceId, subServiceData", subServiceId, subServiceData);
-        
         await this._subServiceRepository.updateSubService(subServiceId, subServiceData)
 
         const updatedSubService = await this._subServiceRepository.findById(subServiceId)
-        console.log("updatedSubService", updatedSubService);
-        
          if(!updatedSubService){
           throw new Error('Failed to retrieve updated service');
         }
@@ -469,23 +454,59 @@ export class AdminService implements IAdminService {
       }
     }
 
-    async getDashboard(userId:string): Promise<AdminDashboardResponseDTO> {
-      try {
-        const totalCustomers = await this._userRepository.countUsers({role:'user'})
-        const totalBookings = await this._bookingRepository.countBookings({});
-        const activePartners = await this._userRepository.countUsers({role:'partner', status:'active'})
-        let totalRevenue = (await this._walletService.getWallet(userId))?.wallet?.balance
-        if(!totalRevenue){
-          totalRevenue=0
-        }
-        const bookingStatusDistribution=await this._bookingRepository.getBookingStatusDistribution()
-        const revenueTrends = await this._bookingRepository.getRevenueTrends()
-        return {totalCustomers,totalBookings,activePartners,totalRevenue, bookingStatusDistribution,revenueTrends}
-      } catch (error) {
-        console.error('Error in getDashboard:', error);
-        throw new Error('Failed to fetch dashboard data');
-      }
+    // async getDashboard(userId:string, startDate?: string, endDate?: string): Promise<AdminDashboardResponseDTO> {
+    //   try {
+    //     const totalCustomers = await this._userRepository.countUsers({role:'user'})
+    //     const totalBookings = await this._bookingRepository.countBookings({startDate, endDate});
+    //     const activePartners = await this._userRepository.countUsers({role:'partner', status:'active'})
+    //     let totalRevenue = (await this._walletService.getWallet(userId))?.wallet?.balance
+    //     if(!totalRevenue){
+    //       totalRevenue=0
+    //     }
+    //     const bookingStatusDistribution=await this._bookingRepository.getBookingStatusDistribution()
+    //     const revenueTrends = await this._bookingRepository.getRevenueTrends()
+    //     return {totalCustomers,totalBookings,activePartners,totalRevenue, bookingStatusDistribution,revenueTrends}
+    //   } catch (error) {
+    //     console.error('Error in getDashboard:', error);
+    //     throw new Error('Failed to fetch dashboard data');
+    //   }
+    // }
+
+    async getDashboard( startDate?: string, endDate?: string): Promise<AdminDashboardResponseDTO> {
+    try {
+      const totalCustomers = await this._userRepository.countUsers({ role: 'user',startDate, endDate });
+
+      const totalBookings = await this._bookingRepository.countBookings({}, startDate, endDate);
+
+      const activePartners = await this._userRepository.countUsers({
+        role: 'partner',
+        status: 'active',
+        startDate, endDate
+      });
+
+      // let totalRevenue = (await this._walletService.getWallet(userId))?.wallet?.balance;
+      let totalRevenue = await this._bookingRepository.calculateTotalRevenue(startDate, endDate);
+
+      if (!totalRevenue) totalRevenue = 0;
+
+      const bookingStatusDistribution = await this._bookingRepository.getBookingStatusDistribution(startDate, endDate);
+
+      const revenueTrends = await this._bookingRepository.getRevenueTrends(startDate, endDate);
+
+      return {
+        totalCustomers,
+        totalBookings,
+        activePartners,
+        totalRevenue,
+        bookingStatusDistribution,
+        revenueTrends
+      };
+    } catch (error) {
+      console.error('Error in getDashboard:', error);
+      throw new Error('Failed to fetch dashboard data');
     }
+  }
+
 
     
 }

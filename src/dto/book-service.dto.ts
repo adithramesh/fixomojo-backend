@@ -21,3 +21,21 @@ export interface BookServiceResponseDTO {
     message:string,
     data?:object
 }
+
+export interface BookingResponseDTO {
+    id?: string;
+    username?: string;
+    subServiceId: string;
+    subServiceName: string;
+    totalAmount: string | number;
+    paymentStatus: string;
+    bookingStatus: string;
+    timeSlotStart?: Date | null;
+    createdAt: Date;
+    location: string | {address:string, latitude:number, longitude:number};
+    isCompleted?: boolean;
+}
+
+
+
+  

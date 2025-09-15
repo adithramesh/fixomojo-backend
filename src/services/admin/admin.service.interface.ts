@@ -15,6 +15,7 @@ export interface IAdminService {
     updateService(serviceId:string, serviceData:ServiceRequestDTO):Promise<ServiceResponseDTO>
     updateSubService(subServiceId:string, subServiceData:SubServiceRequestDTO):Promise<SubServiceResponseDTO>
     savedLocation(userId:string):Promise<string | undefined>
-    getDashboard(userId:string):Promise<AdminDashboardResponseDTO>
+    getDashboard( startDate?: string, endDate?: string):Promise<AdminDashboardResponseDTO>
     // generateStreamToken(userId: string): Promise<string>
+    // generateSalesReport(filters: {startDate: Date, endDate: Date}): Promise<Buffer>
 }

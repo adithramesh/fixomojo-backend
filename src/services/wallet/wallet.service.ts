@@ -128,7 +128,6 @@ async walletRecharge(userId:string, amount: number): Promise<{ success: boolean;
     if(!userId){
         return { success: false, message: 'Payment not initiated by user.' };
     }
-    // console.log("session", session);
     
     if (session.payment_status !== 'paid') {
      
@@ -136,7 +135,6 @@ async walletRecharge(userId:string, amount: number): Promise<{ success: boolean;
     } 
      const existingTxn = await this._transactionService.getTransactionByReference(sessionId);
     if (existingTxn) {
-      console.log("inside existing txn", existingTxn);
       return { success: true, message: 'Wallet already credited.' };
     } else{
         try {

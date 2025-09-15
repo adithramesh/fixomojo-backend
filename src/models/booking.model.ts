@@ -1,4 +1,6 @@
 import mongoose, {Schema, Document} from "mongoose"
+import { PaymentStatus } from "../utils/payment-status.enum";
+import { BookingStatus } from "../utils/booking-status.enum";
 
 export interface IBooking extends Document {
     userId:string;
@@ -15,8 +17,10 @@ export interface IBooking extends Document {
     googleEventId?: string; 
     totalAmount:number;
     paymentMethod:"Cash" | "Card" | "Wallet";
-    bookingStatus: "Hold" |"Pending" | "Confirmed" | "Cancelled"| "Completed" | "Failed";
-    paymentStatus: "Pending" | "Success" | "Failed";
+    // bookingStatus: "Hold" |"Pending" | "Confirmed" | "Cancelled"| "Completed" | "Failed";
+    // paymentStatus: "Pending" | "Success" | "Failed";
+    bookingStatus: BookingStatus;
+    paymentStatus: PaymentStatus
     isCompleted?:boolean;
     // stripePaymentIntentId?: string
     timeSlotStart?: Date | null; 

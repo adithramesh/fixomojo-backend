@@ -5,6 +5,7 @@ import { socketAuthMiddleware } from '../middlewares/socket.auth.middleware';
 import { injectable, inject } from 'inversify';
 import { IChatService } from '../services/chat/chat.service.interface';
 import { TYPES } from '../types/types';
+import { IUserRepository } from '../repositories/user/user.repository.interface';
 
 
 @injectable()
@@ -12,7 +13,8 @@ export class SocketConfig {
   private io!: Server;
 
   constructor(
-    @inject(TYPES.IChatService) private _chatService: IChatService
+    @inject(TYPES.IChatService) private _chatService: IChatService,
+    @inject(TYPES.IUserRepository) private _userRepository: IUserRepository
   ) {}
 
   /**
@@ -44,6 +46,7 @@ export class SocketConfig {
     this.io.on('connection', (socket: Socket) => {
       console.log('New client connected:', socket.id);
       const user = socket.data.user;
+      const bookingId = socket.handshake.query.bookingId as string;
 
       // Join user-specific room
       if (user && user.id) {
@@ -52,12 +55,17 @@ export class SocketConfig {
       }
 
       // New event listener for joining a booking room
-      socket.on('joinBookingRoom', (bookingId: string) => {
-        if (bookingId) {
-            socket.join(`booking:${bookingId}`);
-            console.log(`User ${user.id} joined booking room: booking:${bookingId}`);
-        }
-      });
+      // socket.on('joinBookingRoom', (bookingId: string) => {
+      //   if (bookingId) {
+      //       socket.join(`booking:${bookingId}`);
+      //       console.log(`User ${user.id} joined booking room: booking:${bookingId}`);
+      //   }
+      // });
+
+      if (bookingId && typeof bookingId === 'string') {
+        socket.join(`booking:${bookingId}`);
+        console.log(`User ${user.id} joined booking room: booking:${bookingId}`);
+      }
 
       socket.on('message', async (data: { bookingId: string; messageText: string }) => {
         try {
@@ -69,19 +77,22 @@ export class SocketConfig {
             user.role
           );
 
+          const senderName = await this.getUserName(user.id);
+
           this.io.to(`booking:${bookingId}`).emit('message', {
             messageId: savedMessage._id!.toString(),
             bookingId: savedMessage.bookingId.toString(),
             messageText: savedMessage.messageText,
             senderType: savedMessage.senderType,
             senderId: savedMessage.senderType === 'user' ? savedMessage.userId.toString() : savedMessage.technicianId.toString(),
-            createdAt: savedMessage.createdAt,
+            createdAt: savedMessage.createdAt.toISOString(),
+            senderName:senderName
           });
 
           // Trigger Notification for Chat Message
           const recipientId = user.id === savedMessage.userId.toString() ? savedMessage.technicianId : savedMessage.userId;
           if (recipientId && recipientId.toString() !== user.id) {
-            this.emitToUser(recipientId.toString(), 'newChatMessage', {
+            this.emitToUser(recipientId.toString(), 'message', {
                 bookingId: savedMessage.bookingId.toString(),
                 senderId: user.id,
                 message: messageText,
@@ -128,5 +139,10 @@ export class SocketConfig {
     }
     this.io.to(roomName).emit(event, data);
     console.log(`Emitted event '${event}' to room:${roomName} with data:`, data);
+  }
+
+  private async getUserName(userId: string): Promise<string|undefined> {
+    const user=await this._userRepository.findUserById(userId);
+    return user?.username 
   }
 }

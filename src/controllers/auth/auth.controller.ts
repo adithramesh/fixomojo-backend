@@ -30,7 +30,6 @@ constructor(
     }
 
     async verifyOtp(req: Request<OtpRequestDTO & { context: "signup" | "forgot-password" }>, res:Response<SignupResponseDTO>):Promise<void>{
-        console.log('Received verify-otp request:', req.body);
         try {
             const {tempUserId, otp, context}=req.body
             const response= await this._authService.verifyOtp({tempUserId,otp,context})
@@ -48,7 +47,6 @@ constructor(
         try {
             const otpData:OtpResendRequestDTO=req.body
             const response = await this._authService.resendOtp(otpData)
-            console.log("response resend otp",response);
             res.status(response.status).json(response)
         } catch (error) {
             console.log("error occured", error);
@@ -63,8 +61,6 @@ constructor(
         try {
             const loginData:LoginRequestDTO=req.body
             const response = await this._authService.login(loginData)
-            console.log(response);
-            
             res.status(response.status).json(response)
         } catch (error) {
             console.log("error occured", error);
@@ -78,7 +74,6 @@ constructor(
     async forgotPassword(req:Request<ForgotPasswordRequestDTO>, res:Response<SignupResponseDTO>):Promise<void>{
         try {
             const data:ForgotPasswordRequestDTO = req.body
-            // console.log("forgot password controller", data);
             const response = await this._authService.forgotPassword(data)
             res.status(response.status).json(response)
         } catch (error) {
@@ -94,7 +89,6 @@ constructor(
         try {
             const resetData:ResetPasswordRequestDTO=req.body;
             const response = await this._authService.resetPassword(resetData)
-            console.log("response from reset password", response);
             res.status(response.status).json(response)
         } catch (error) {
             console.log("error occured", error);

@@ -36,10 +36,7 @@ export class TimeSlotController implements ITimeSlotController {
 
     async getAvailableSlots(req: Request, res: Response): Promise<void> {
     try {
-        const { technicianId, date } = req.query;
-        console.log("req.query", req.query);
-        
-        
+        const { technicianId, date } = req.query;        
         const slots = await this._timeSlotService.getAvailableSlots({ 
             technicianId: String(technicianId || ''), 
             date: (String(date || '')) 
@@ -82,7 +79,6 @@ async blockMultiDaySlots(req: Request, res: Response): Promise<void> {
  async unblockSlot(req: Request, res: Response): Promise<void> {
         try {
             const { technicianId, googleEventId } = req.params;
-            console.log("req.params", req.params);
             
             if (!technicianId || !googleEventId) {
                 res.status(HttpStatus.BAD_REQUEST).json({

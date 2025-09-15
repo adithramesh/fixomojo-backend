@@ -14,6 +14,8 @@ import { IServiceRepository } from "../../repositories/service/service.repositor
 import { UserResponseDTO } from "../../dto/admin.dto";
 import { IUserRepository } from "../../repositories/user/user.repository.interface";
 import { PartnerDashboardResponseDTO } from "../../dto/partner.dto";
+import { BookingStatus } from "../../utils/booking-status.enum";
+import { PaymentStatus } from "../../utils/payment-status.enum";
 
 
 @injectable()
@@ -68,8 +70,8 @@ export class UserService implements IUserService {
       }
     const newBooking = await this._bookingRepository.createBooking({
       ...data,
-      bookingStatus: 'Hold',
-      paymentStatus: 'Pending'
+      bookingStatus: BookingStatus.HOLD,
+      paymentStatus: PaymentStatus.PENDING
     });
 
     if (data.paymentMethod === 'Card') {
@@ -147,7 +149,8 @@ export class UserService implements IUserService {
       if (!booking || booking.bookingStatus !== 'Hold' || booking.createdAt < new Date(Date.now() - 5 * 60 * 1000)) {
         if (booking) {
           await this._bookingRepository.updateBooking(bookingId as string, {
-            bookingStatus: 'Cancelled',
+            // bookingStatus: 'Cancelled',
+            bookingStatus: BookingStatus.CANCELLED,
             timeSlotStart: null,
             timeSlotEnd: null,
           });
@@ -166,7 +169,8 @@ export class UserService implements IUserService {
 
       if (conflictingBooking) {
         await this._bookingRepository.updateBooking(bookingId as string, {
-          bookingStatus: 'Cancelled',
+          // bookingStatus: 'Cancelled',
+          bookingStatus: BookingStatus.CANCELLED,
           timeSlotStart: null,
           timeSlotEnd: null,
         });
@@ -187,8 +191,8 @@ export class UserService implements IUserService {
     
     if (!blockResult.success ) {
       await this._bookingRepository.updateBooking(bookingId as string, {
-        paymentStatus: 'Success',
-        bookingStatus: 'Failed',
+        paymentStatus: PaymentStatus.SUCCESS,
+        bookingStatus: BookingStatus.FAILED,
         timeSlotStart:null,
         timeSlotEnd:null
       });
@@ -196,8 +200,10 @@ export class UserService implements IUserService {
     }
     
     const updatedBooking = await this._bookingRepository.updateBooking(bookingId as string, {
-      paymentStatus: 'Success',
-      bookingStatus: 'Confirmed',
+      // paymentStatus: 'Success',
+      // bookingStatus: 'Confirmed',
+      paymentStatus: PaymentStatus.SUCCESS,
+      bookingStatus: BookingStatus.CONFIRMED,
     });
 
     if(updatedBooking){
@@ -264,8 +270,10 @@ export class UserService implements IUserService {
   }
 
   const updatedBooking = await this._bookingRepository.updateBooking(newBooking._id, {
-    paymentStatus: 'Success',
-    bookingStatus: 'Confirmed',
+    // paymentStatus: 'Success',
+    // bookingStatus: 'Confirmed',
+    paymentStatus: PaymentStatus.SUCCESS,
+    bookingStatus: BookingStatus.CONFIRMED,
   });
 
   try {
@@ -298,7 +306,8 @@ async getProfile(userId: string): Promise<Partial<UserResponseDTO>> {
   }
   const userData={
     username:user.username,
-    profilePic:user.image
+    profilePic:user.image,
+    phoneNumber:user.phoneNumber
   }
   return userData
 }

@@ -3,6 +3,7 @@ import config from '../config/env';
 import { Request, Response, NextFunction } from 'express';
 import { HttpStatus } from '../utils/http-status.enum';
 import User from '../models/user.model';
+import { UserStatus } from '../utils/user-status.enum';
 
 export interface AuthRequest extends Request {
     user?: {
@@ -37,7 +38,8 @@ export const authMiddleware = async (req: AuthRequest, res: Response, next: Next
             return;
         }
 
-        if (user.status === 'blocked' || user.status === 'pending') {
+        // if (user.status === 'blocked' || user.status === 'pending') 
+        if (user.status === UserStatus.BLOCKED || user.status === UserStatus.PENDING)    {
             res.status(HttpStatus.UNAUTHORIZED).json({
                 success: false,
                 message: 'User is blocked',

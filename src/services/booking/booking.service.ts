@@ -1,7 +1,6 @@
 import { inject, injectable } from "inversify";
 import { PaginatedResponseDTO, PaginationRequestDTO } from "../../dto/admin.dto";
 import { TYPES } from "../../types/types";
-import { IBooking } from "../../models/booking.model";
 import { IBookingService } from "./booking.service.interface";
 import { IOtpService } from "../auth/otp.service";
 import mongoose from "mongoose";
@@ -14,6 +13,8 @@ import { IOtpRepository } from "../../repositories/otp/otp.repository.interface"
 import { INotificationService } from "../notification/notification.service.interface";
 import { NotificationType } from "../../models/notification.model";
 import { Role } from "../../models/user.model";
+import { BookingStatus } from "../../utils/booking-status.enum";
+import { BookingResponseDTO } from "../../dto/book-service.dto";
 
 @injectable()
 export class BookingService implements IBookingService{ 
@@ -27,7 +28,7 @@ export class BookingService implements IBookingService{
         @inject(TYPES.INotificationService) private _notificationService:INotificationService
     ){}
 
-     async getBookings(pagination: PaginationRequestDTO, userId:string, role:string): Promise<{ success: boolean; message: string; bookingList?: PaginatedResponseDTO<IBooking[]>}> {
+     async getBookings(pagination: PaginationRequestDTO, userId:string, role:string): Promise<{ success: boolean; message: string; bookingList?: PaginatedResponseDTO<BookingResponseDTO[]>}> {
         try {
           const { page, pageSize, sortBy, sortOrder, searchTerm, filter = {} } = pagination;
           const skip = (page - 1) * pageSize;
@@ -47,11 +48,28 @@ export class BookingService implements IBookingService{
             sortOrder || 'asc',
             filter
           )
+
+          const bookingResponseDTO : BookingResponseDTO[]= bookingList.map(booking=>({
+              id: (booking._id as mongoose.Types.ObjectId).toString(),
+              username:booking.username,
+              // subServiceId: (booking.subServiceId as unknown as mongoose.Types.ObjectId).toString(),
+              subServiceId: booking.subServiceId,
+              subServiceName:booking.subServiceName,
+              totalAmount: booking.totalAmount.toString(),
+              paymentStatus: booking.paymentStatus,
+              bookingStatus: booking.bookingStatus,
+              timeSlotStart:booking.timeSlotStart,
+              createdAt:booking.createdAt,
+              location:booking.location.address,
+              isCompleted: booking.isCompleted
+          }))
+
           const totalBookings = await this._bookingRepository.countBookings(filter);
            return {
               success: true, message: 'All bookings of this user sent.',
               bookingList:{
-                  items: bookingList,
+                  // items: bookingList,
+                  items: bookingResponseDTO,
                   total: totalBookings,
                   page: page,
                   pageSize: pageSize,
@@ -69,7 +87,7 @@ export class BookingService implements IBookingService{
         }
       }
 
-      async getBookingById(bookingId: string): Promise<{success:boolean, message:string, data?: Partial<IBooking>}> {
+      async getBookingById(bookingId: string): Promise<{success:boolean, message:string, data?: BookingResponseDTO}> {
         try {
           const result = await this._bookingRepository.findBookingById(bookingId)
           return {
@@ -87,7 +105,7 @@ export class BookingService implements IBookingService{
         }
       }
 
-      async getAllBookingsForAdmin(pagination: PaginationRequestDTO): Promise<{ success: boolean; message: string; bookingList?: PaginatedResponseDTO<IBooking[]>; }> {
+      async getAllBookingsForAdmin(pagination: PaginationRequestDTO): Promise<{ success: boolean; message: string; bookingList?: PaginatedResponseDTO<BookingResponseDTO[]>; }> {
         try {
           const { page, pageSize, sortBy, sortOrder, searchTerm, filter = {} } = pagination;
           const skip = (page - 1) * pageSize;
@@ -102,6 +120,8 @@ export class BookingService implements IBookingService{
             sortOrder || 'asc',
             filter
           )
+
+
           const totalBookings = await this._bookingRepository.countBookings(filter);
            return {
               success: true, message: 'All bookings of admin sent.',
@@ -144,12 +164,10 @@ export class BookingService implements IBookingService{
                   const otp = this._otpService.generateOtp();
                   
                     const booking= await this._bookingRepository.findBookingById(bookingId);
-                    console.log("booking", booking);
                     
                      if (!booking) {
                           return { success: false, message: "Booking not found." };
                       }
-                      console.log("userId:technicianId, bookingId, otp", technicianId, bookingId, otp);
                       
                   await this._otpRepository.createOtp({ userId:technicianId, bookingId, otp });    
                   // const {phoneNumber} = await this._userRepository.findUserById(booking.userId.toString());
@@ -213,7 +231,8 @@ export class BookingService implements IBookingService{
 
             const updatedBooking = await this._bookingRepository.updateBooking(bookingId as string, {
                 isCompleted: true,
-                bookingStatus: 'Completed',
+                // bookingStatus: 'Completed',
+                bookingStatus: BookingStatus.COMPLETED,
               });
 
             

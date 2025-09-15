@@ -6,7 +6,7 @@ export interface IUserRepository{
     findUserById(id: string):Promise<IUser | null>;
     updateUser(id:string, updateData:Partial<IUser>): Promise<IUser |null>
     findUsersPaginated(skip: number,limit: number,sortBy: string,sortOrder: string,filter:Record<string, unknown>):Promise<IUser[]>;
-    countUsers(filter: Record<string, unknown>):Promise<number>
+    countUsers(filter: Record<string, unknown>,startDate?: string, endDate?: string):Promise<number>
 }
 
 

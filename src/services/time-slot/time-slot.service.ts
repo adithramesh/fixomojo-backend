@@ -10,6 +10,7 @@ import config from "../../config/env";
 import { TYPES } from "../../types/types";
 import { IBookingRepository } from "../../repositories/booking/booking.repository.interface";
 import { IUserRepository } from "../../repositories/user/user.repository.interface";
+import { BookingStatus } from "../../utils/booking-status.enum";
 
 @injectable()
 export class TimeSlotService implements ITimeSlotService {
@@ -113,7 +114,8 @@ export class TimeSlotService implements ITimeSlotService {
       });
 
       await this._bookingRepository.updateBooking(bookingId, {
-        bookingStatus: 'Confirmed',
+        // bookingStatus: 'Confirmed',
+        bookingStatus: BookingStatus.CONFIRMED,
         googleEventId: calendarResponse.data.id!
       });
 

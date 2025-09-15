@@ -54,6 +54,12 @@ export const TYPES={
     INotificationController: Symbol.for("INotificationController"),
     NotificationRoutes: Symbol.for("NotificatonRoutes"),
 
+    IOfferRepository: Symbol.for("IOfferRepository"),
+    IOfferService: Symbol.for("IOfferService"),
+    IOfferController: Symbol.for("IOfferController"),
+    OfferRoutes: Symbol.for("OfferRoutes"),
+
+
     SocketConfig: Symbol.for('SocketConfig'),
 
     IStreamService: Symbol.for('IStreamService')

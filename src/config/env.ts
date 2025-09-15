@@ -4,7 +4,7 @@ dotenv.config()
 
 interface Config{
     PORT:number;
-    CLIENT_URL:string;
+    CLIENT_URL:string[];
     JWT_SECRET: string;
     MONGO_URL:string;
     TWILIO_SID:string;
@@ -27,7 +27,7 @@ interface Config{
 const projectRoot = process.cwd();
 const config:Config = {
     PORT: Number(process.env.PORT),
-    CLIENT_URL: process.env.CLIENT_URL as string,
+    CLIENT_URL: process.env.CLIENT_URL ? process.env.CLIENT_URL.split(',') : ['http://localhost:4200'],
     JWT_SECRET: process.env.JWT_SECRET as string,
     MONGO_URL: process.env.MONGO_URL as string,
     TWILIO_SID:process.env.TWILIO_SID as string,

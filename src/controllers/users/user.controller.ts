@@ -73,8 +73,6 @@ export class UserController implements IUserController{
            try {
               const userId=req.user?.id.toString()|| ''
               const userData = req.body
-              console.log(`update service, req.params: ${JSON.stringify(req.params)}, req.body: ${JSON.stringify(req.body)}, req.file: ${JSON.stringify(req.file)}`);
-
                if (req.file) {
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 const uploadResult:any = await uploadToCloudinary(req.file.buffer, 'users');
@@ -84,7 +82,7 @@ export class UserController implements IUserController{
               res.status(HttpStatus.SUCCESS).json(response);
             } catch (error) {
               console.log("error occured", error);
-                res.status(HttpStatus.INTERNAL_SERVER_ERROR)
+              res.status(HttpStatus.INTERNAL_SERVER_ERROR)
             }
     }
 

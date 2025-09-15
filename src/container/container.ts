@@ -68,6 +68,13 @@ import { NotificationController } from '../controllers/notification/notification
 import { NotificationRoutes } from '../routes/notofication.routes'
 import { IStreamService } from '../services/stream/stream.service.interface'
 import { StreamService } from '../services/stream/stream.service'
+import { OfferRepository } from '../repositories/offer/offer.repository'
+import { IOfferRepository } from '../repositories/offer/offer.repository.interface'
+import { OfferController } from '../controllers/offer/offer.controller'
+import { IOfferService } from '../services/offer/offer.service.interface'
+import { IOfferController } from '../controllers/offer/offer.controller.interface'
+import { OfferService } from '../services/offer/offer.service'
+import { OfferRoutes } from '../routes/offer.routes'
 
 
 const container = new Container()
@@ -122,6 +129,11 @@ container.bind<INotificationRepository>(TYPES.INotificationRepository).to(Notifi
 container.bind<INotificationService>(TYPES.INotificationService).to(NotificationService)
 container.bind<INotificationController>(TYPES.INotificationController).to(NotificationController)
 container.bind<NotificationRoutes>(TYPES.NotificationRoutes).to(NotificationRoutes)
+
+container.bind<IOfferRepository>(TYPES.IOfferRepository).to(OfferRepository)
+container.bind<IOfferService>(TYPES.IOfferService).to(OfferService)
+container.bind<IOfferController>(TYPES.IOfferController).to(OfferController)
+container.bind<OfferRoutes>(TYPES.OfferRoutes).to(OfferRoutes)
 
 container.bind<SocketConfig>(TYPES.SocketConfig).to(SocketConfig).inSingletonScope();
 

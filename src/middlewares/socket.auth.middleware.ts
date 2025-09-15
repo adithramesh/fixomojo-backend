@@ -3,6 +3,7 @@ import { Socket } from 'socket.io';
 import config from '../config/env';
 import User from '../models/user.model';
 import { HttpStatus } from '../utils/http-status.enum';
+import { UserStatus } from '../utils/user-status.enum';
 
 
 interface JwtPayload {
@@ -47,7 +48,8 @@ export const socketAuthMiddleware = async (socket: Socket, next: (err?: Error) =
       return next(error);
     }
 
-    if (user.status === 'blocked' || user.status === 'pending') {
+    // if (user.status === 'blocked' || user.status === 'pending') 
+    if (user.status === UserStatus.BLOCKED || user.status === UserStatus.PENDING)  {
       const error: SocketAuthError = new Error('User is blocked or pending') as SocketAuthError;
       error.status = HttpStatus.UNAUTHORIZED;
       error.data = {

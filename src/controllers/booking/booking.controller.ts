@@ -26,10 +26,8 @@ export class BookingController implements IBookingController{
                       };
                 const userId=req.user?.id.toString() || ''
                 const role = req.user?.role
-                console.log("userId through token", userId);
                 
                 const result = await this._bookingService.getBookings(pagination, userId, role!); // Call with userId
-                console.log("bookingList", result.bookingList);
                 
             if (result.success) {
                 res.status(HttpStatus.SUCCESS).json({ success: true, bookingList: result.bookingList });

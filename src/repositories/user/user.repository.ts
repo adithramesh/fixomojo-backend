@@ -38,8 +38,16 @@ export class UserRepository extends BaseRepository<IUser> implements IUserReposi
           .exec();
       }
     
-    async countUsers(filter: Record<string, unknown> = {}) {
-        return await this.count(filter);
+    async countUsers(filter: Record<string, unknown> = {},startDate?: string, endDate?: string) {
+        const query: Record<string, unknown> = { ...filter };
+       
+        if (startDate && endDate) {
+              query.createdAt = {
+                $gte: new Date(startDate),
+                $lte: new Date(endDate)
+              };
+        }
+        return await this.count(query);
     }
 
 }
