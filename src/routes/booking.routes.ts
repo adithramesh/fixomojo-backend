@@ -21,6 +21,7 @@ export class BookingRoutes {
         this.router.get('/initiate-complete',this._bookingController.initiateWorkComplete.bind(this._bookingController))
         this.router.get('/:bookingId',this._bookingController.getBookingById.bind(this._bookingController))
         this.router.post('/verify-work',this._bookingController.verifyWorkComplete.bind(this._bookingController))
+        this.router.post('/cancel/:id',this._bookingController.cancelBooking.bind(this._bookingController))
     }
     public getRouter(){
         return this.router

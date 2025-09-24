@@ -283,7 +283,7 @@ export class AdminController implements IAdminController {
       const userId = req.user?.id;
       const token = await this._streamService.generateStreamToken(userId!);
       res.status(HttpStatus.SUCCESS).json({success:true,message:'Token Generated', data:{token}, status:HttpStatus.SUCCESS})
-    } catch (error) {
+    } catch (error:unknown) {
       console.error('Error generating Stream token:', error);
       res.status(HttpStatus.INTERNAL_SERVER_ERROR);
     }

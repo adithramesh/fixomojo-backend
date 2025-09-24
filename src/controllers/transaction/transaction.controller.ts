@@ -1,7 +1,6 @@
 import { Response } from "express";
 import { inject, injectable } from "inversify";
 import { ITransactionController } from "./transaction.controller.interface";
-// import { TransactionService } from "../../services/transaction/transaction.service";
 import { TYPES } from "../../types/types";
 import { HttpStatus } from "../../utils/http-status.enum";
 import { AuthRequest } from "../../middlewares/auth.middleware";
@@ -11,7 +10,6 @@ import { ITransactionService } from "../../services/transaction/transaction.serv
 @injectable()
 export class TransactionController implements ITransactionController{
     constructor(
-        // @inject(TYPES.TransactionService) private _transactionService:TransactionService
         @inject(TYPES.ITransactionService) private _transactionService:ITransactionService
     ){}
 

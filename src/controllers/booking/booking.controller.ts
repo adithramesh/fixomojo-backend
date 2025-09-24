@@ -119,4 +119,22 @@ export class BookingController implements IBookingController{
                 res.status(HttpStatus.BAD_REQUEST).json({ success: false, message: error.message || "Failed verify work completion with OTP" });
             }
         }
+
+
+        async cancelBooking(req: AuthRequest, res: Response): Promise<void> {
+            try {
+                const userId= req.user?.id.toString()||''
+                const role=req.user?.role
+                const bookingId = req.params.id
+                const bookingCancelResponse = await this._bookingService.cancelBooking(userId,role!,bookingId)
+                res.status(HttpStatus.CREATED).json(bookingCancelResponse)
+            } catch (error: unknown) {
+                console.error("Error cancelling booking :", error);
+                const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred.";
+                res.status(HttpStatus.BAD_REQUEST).json({ 
+                    success: false, 
+                    message: errorMessage 
+                });
+            }
+        }
 }

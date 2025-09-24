@@ -9,4 +9,5 @@ export interface IBookingController {
     // countBookings(_req: AuthRequest, res: Response):Promise<void>
     initiateWorkComplete(req:AuthRequest, res:Response):Promise<void>
     verifyWorkComplete(req:AuthRequest, res:Response):Promise<void>
+    cancelBooking(req:AuthRequest, res:Response):Promise<void>
 }
