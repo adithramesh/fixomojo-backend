@@ -102,8 +102,13 @@ async walletRecharge(userId:string, amount: number): Promise<{ success: boolean;
             amount: amount.toString(),
             purpose: 'Wallet Recharge',
           },
-          success_url: `http://localhost:4200/payment-success?session_id={CHECKOUT_SESSION_ID}&type=wallet`,
-          cancel_url: `http://localhost:4200/payment-cancelled`,
+          // success_url: `http://localhost:4200/payment-success?session_id={CHECKOUT_SESSION_ID}&type=wallet`,
+          // cancel_url: `http://localhost:4200/payment-cancelled`,
+
+          success_url: `https://sm9gg31b-4200.inc1.devtunnels.ms/payment-success?session_id={CHECKOUT_SESSION_ID}&type=wallet`,
+          cancel_url: `https://sm9gg31b-4200.inc1.devtunnels.ms/payment-cancelled`,
+
+  
         });
 
     return {

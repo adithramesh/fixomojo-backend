@@ -98,8 +98,11 @@ export class UserService implements IUserService {
            subServiceId: data.subServiceId,
            technicianId: data.technicianId,
         },
-        success_url: `http://localhost:4200/payment-success?session_id={CHECKOUT_SESSION_ID}&type=card`,
-        cancel_url: 'http://localhost:4200/payment-cancelled',
+        // success_url: `http://localhost:4200/payment-success?session_id={CHECKOUT_SESSION_ID}&type=card`,
+        // cancel_url: 'http://localhost:4200/payment-cancelled',
+
+        success_url: `https://sm9gg31b-4200.inc1.devtunnels.ms/payment-success?session_id={CHECKOUT_SESSION_ID}&type=card`,
+        cancel_url: 'https://sm9gg31b-4200.inc1.devtunnels.ms/payment-cancelled',
       });
 
       return {
