@@ -76,6 +76,8 @@ export class BookingService implements IBookingService {
         (booking) => ({
           id: (booking._id as mongoose.Types.ObjectId).toString(),
           username: booking.username,
+          technicianId:booking.technicianId,
+          technicianName:booking.technicianName,
           // subServiceId: (booking.subServiceId as unknown as mongoose.Types.ObjectId).toString(),
           subServiceId: booking.subServiceId,
           subServiceName: booking.subServiceName,
@@ -311,7 +313,7 @@ export class BookingService implements IBookingService {
           updatedBooking.userId,
           Role.USER,
           NotificationType.BookingCompleted,
-          `Your booking for ${updatedBooking.subServiceName} has been successfully completed and payment processed.`,
+          `Your booking for ${updatedBooking.subServiceName} has been successfully completed.`,
           {
             bookingId: updatedBooking._id,
             totalAmount: updatedBooking.totalAmount,
@@ -371,7 +373,7 @@ export class BookingService implements IBookingService {
             Role.ADMIN,
             NotificationType.BookingCompleted,
             `Booking ${
-              updatedBooking._id
+              String(updatedBooking._id).slice(18)
             } completed. Admin commission: ${adminShare.toFixed(2)}`,
             { bookingId: updatedBooking._id, adminCommission: adminShare }
           );

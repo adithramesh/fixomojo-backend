@@ -14,7 +14,7 @@ export class TransactionRoutes {
         this.initializeRoutes()
     }
     private initializeRoutes(){
-        this.router.use(authMiddleware);
+        this.router.use(authMiddleware());
         this.router.post('/log',this._transactionController.logTransaction.bind(this._transactionController))
         this.router.get('/user-transactions',this._transactionController.getTransactionByUser.bind(this._transactionController))
         this.router.get('/count',this._transactionController.countTransactions.bind(this._transactionController))

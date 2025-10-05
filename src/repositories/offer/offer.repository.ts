@@ -55,4 +55,6 @@ export class OfferRepository extends BaseRepository<IOffer> implements IOfferRep
   async getActiveOffers(filter: FilterQuery<IOffer>): Promise<IOffer[]> {
     return await Offer.find(filter).sort({ createdAt: -1 }).exec();
   }
+
+  
 }

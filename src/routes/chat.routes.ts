@@ -3,6 +3,7 @@ import { inject, injectable } from 'inversify'
 import { TYPES } from '../types/types'
 import { authMiddleware } from '../middlewares/auth.middleware'
 import { IChatController } from '../controllers/chat/chat.controller.interface'
+import { Role } from '../models/user.model'
 
 
 
@@ -16,8 +17,8 @@ export class ChatRoutes {
         this.initializeRoutes()
     }
     private initializeRoutes(){
-        this.router.use(authMiddleware);
-        this.router.get('/:bookingId',this._chatController.getChatHistory.bind(this._chatController))
+
+        this.router.get('/:bookingId',authMiddleware([Role.USER, Role.PARTNER]),this._chatController.getChatHistory.bind(this._chatController))
        
     }
     public getRouter(){

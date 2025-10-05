@@ -306,4 +306,7 @@ private calculateDiscount(offer: IOffer, totalAmount: number): number {
   return 0;
 }
 
+
+
+
 }

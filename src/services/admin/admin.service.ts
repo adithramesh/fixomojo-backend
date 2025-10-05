@@ -15,6 +15,7 @@ import { IBookingService } from "../booking/booking.service.interface";
 import { ServiceStatus } from "../../utils/service-status.enum";
 import { UserStatus } from "../../utils/user-status.enum";
 import { LicenseStatus } from "../../utils/partner-license-status.enum";
+import { ServiceLookupDTO } from "../../dto/offer.dto";
 
 
 @injectable()
@@ -507,6 +508,19 @@ export class AdminService implements IAdminService {
     }
   }
 
+  async getAllActiveServices(): Promise<ServiceLookupDTO[]> {
+  try {
+    const services = await this._serviceRepository.findAllActiveServices();
+    const serviceDTOs: ServiceLookupDTO[] = services.map(service => ({
+      id: (service._id as mongoose.Types.ObjectId).toString(),
+      serviceName: service.serviceName,
+    }));
+    return serviceDTOs;
+  } catch (error) {
+    console.error("Error in getAllActiveServices service:", error);
+    throw error;
+  }
+}
 
     
 }

@@ -11,3 +11,9 @@ export interface OfferDataDTO {
   valid_until?: Date;
   serviceId?: Types.ObjectId;
 }
+
+
+export interface ServiceLookupDTO {
+  id: string;
+  serviceName: string;
+}

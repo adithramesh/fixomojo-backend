@@ -1,4 +1,5 @@
 import { AdminDashboardResponseDTO, PaginatedResponseDTO, PaginationRequestDTO, ServiceRequestDTO, ServiceResponseDTO, SubServiceRequestDTO, SubServiceResponseDTO, UserResponseDTO } from "../../dto/admin.dto";
+import { ServiceLookupDTO } from "../../dto/offer.dto";
 
 export interface IAdminService {
     createService(serviceData:ServiceRequestDTO):Promise<ServiceResponseDTO>
@@ -16,6 +17,7 @@ export interface IAdminService {
     updateSubService(subServiceId:string, subServiceData:SubServiceRequestDTO):Promise<SubServiceResponseDTO>
     savedLocation(userId:string):Promise<string | undefined>
     getDashboard( startDate?: string, endDate?: string):Promise<AdminDashboardResponseDTO>
+    getAllActiveServices(): Promise<ServiceLookupDTO[]>
     // generateStreamToken(userId: string): Promise<string>
     // generateSalesReport(filters: {startDate: Date, endDate: Date}): Promise<Buffer>
 }

@@ -67,7 +67,7 @@ export class ChatService implements IChatService {
     ) {
       throw new Error('Unauthorized to send message');
     }
-
+    console.log("Booking ID from send message:", bookingId);
     const chatData: Partial<IChat> = {
       userId: new mongoose.Types.ObjectId(booking.userId),
       technicianId: new mongoose.Types.ObjectId(booking.technicianId),

@@ -29,4 +29,9 @@ export class ServiceRepository extends BaseRepository<IService> implements IServ
     async countServices(filter: Record<string, unknown>= {}): Promise<number> {
         return await this.count(filter) 
     }
+
+
+    async findAllActiveServices(): Promise<IService[]> {
+        return await this.find({ status: 'active' });
+    }
 }

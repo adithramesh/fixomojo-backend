@@ -13,6 +13,7 @@ export interface IBooking extends Document {
         longitude: number;
     };
     technicianId:string;
+    technicianName?:string;
     googleCalendarId?: string;  
     googleEventId?: string; 
     totalAmount:number;
@@ -41,6 +42,7 @@ const bookingSchema:Schema = new Schema({
         longitude: { type: Number, required: true }
     },
     technicianId:{type:String, required:true},
+    technicianName:{type:String, required:false},
     // timeSlot: { type: Schema.Types.ObjectId, ref: 'TimeSlots', required: true },
     googleCalendarId: { type:String, required: false },
     googleEventId: {type:String, required: false},

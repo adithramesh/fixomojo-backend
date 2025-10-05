@@ -6,4 +6,5 @@ export interface IServiceRepository {
     updateService(id:string, updateData:Partial<IService>): Promise<IService |null>
     findServciesPaginated(skip: number,limit: number,sortBy: string,sortOrder: string,filter:Record<string, unknown>):Promise<IService[]>
     countServices(filter: Record<string, unknown>):Promise<number>
+    findAllActiveServices(): Promise<IService[]>
 }

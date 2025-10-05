@@ -22,7 +22,7 @@ export class UserController implements IUserController{
 
     async bookService(req: Request, res: Response):Promise<void> {
         try {
-          const {userId, username, technicianId, subServiceId, location, date, totalAmount, paymentMethod, timeSlotStart, timeSlotEnd, subServiceName }=req.body      
+          const {userId, username, technicianId, technicianName, subServiceId, location, date, totalAmount, paymentMethod, timeSlotStart, timeSlotEnd, subServiceName }=req.body      
       
 
       if (!userId ||!technicianId || !subServiceId || !location  || !date || !totalAmount || !paymentMethod || !timeSlotStart || !timeSlotEnd || !subServiceName ) {
@@ -32,7 +32,7 @@ export class UserController implements IUserController{
                     });
         return;
       }
-       const data={userId, username, technicianId, subServiceId, location, date, totalAmount, paymentMethod, timeSlotStart, timeSlotEnd, subServiceName}
+       const data={userId, username, technicianId, technicianName, subServiceId, location, date, totalAmount, paymentMethod, timeSlotStart, timeSlotEnd, subServiceName}
 
       const response = await this._userService.bookService(data)
       res.status(HttpStatus.CREATED).json(response);

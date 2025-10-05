@@ -2,6 +2,7 @@ import {Request, Response} from "express"
 import { ServiceResponseDTO, ServiceRequestDTO, UserResponseDTO, PaginatedResponseDTO, SubServiceResponseDTO, AdminDashboardResponseDTO } from "../../dto/admin.dto"
 import { AuthRequest } from "../../middlewares/auth.middleware";
 import { StreamTokenResponseDTO } from "../../dto/stream.dto";
+import { ServiceLookupDTO } from "../../dto/offer.dto";
 type EmptyParams = Record<string, never>;
 
 export interface IAdminController {
@@ -21,4 +22,5 @@ export interface IAdminController {
     savedLocation(req:AuthRequest,res:Response<string>):Promise<void>
     getDashboard(req:AuthRequest,res:Response<AdminDashboardResponseDTO>):Promise<void>
     getStreamToken(req:AuthRequest,res: Response<StreamTokenResponseDTO>):Promise<void>
+    getAllActiveServices(req:Request, res:Response<ServiceLookupDTO[]>):Promise<void>
 }   

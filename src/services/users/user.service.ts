@@ -73,6 +73,8 @@ export class UserService implements IUserService {
       bookingStatus: BookingStatus.HOLD,
       paymentStatus: PaymentStatus.PENDING
     });
+    console.log("newBooking", newBooking);
+    
 
     if (data.paymentMethod === 'Card') {
       const amountInCents = Math.round(data.totalAmount * 100);
@@ -98,11 +100,11 @@ export class UserService implements IUserService {
            subServiceId: data.subServiceId,
            technicianId: data.technicianId,
         },
-        // success_url: `http://localhost:4200/payment-success?session_id={CHECKOUT_SESSION_ID}&type=card`,
-        // cancel_url: 'http://localhost:4200/payment-cancelled',
+        success_url: `http://localhost:4200/payment-success?session_id={CHECKOUT_SESSION_ID}&type=card`,
+        cancel_url: 'http://localhost:4200/payment-cancelled',
 
-        success_url: `https://sm9gg31b-4200.inc1.devtunnels.ms/payment-success?session_id={CHECKOUT_SESSION_ID}&type=card`,
-        cancel_url: 'https://sm9gg31b-4200.inc1.devtunnels.ms/payment-cancelled',
+        // success_url: `https://sm9gg31b-4200.inc1.devtunnels.ms/payment-success?session_id={CHECKOUT_SESSION_ID}&type=card`,
+        // cancel_url: 'https://sm9gg31b-4200.inc1.devtunnels.ms/payment-cancelled',
       });
 
       return {
@@ -149,10 +151,17 @@ export class UserService implements IUserService {
     }
 
       const booking = await this._bookingRepository.findBookingById(bookingId as string);
-      if (!booking || booking.bookingStatus !== 'Hold' || booking.createdAt < new Date(Date.now() - 5 * 60 * 1000)) {
+      const isReadyToProcess = booking && (booking.bookingStatus === 'Hold' || booking.bookingStatus === BookingStatus.CONFIRMED);
+      const isExpired = booking && booking.createdAt < new Date(Date.now() - 5 * 60 * 1000);
+      // if (!booking || booking.bookingStatus !== 'Hold' || booking.createdAt < new Date(Date.now() - 5 * 60 * 1000)) {
+      if (!booking || !isReadyToProcess || isExpired) {
+        //condition for second hit
+        if (booking && booking.bookingStatus === BookingStatus.CONFIRMED) {
+            return { success: true, message: 'Payment verified and slot already confirmed.', bookingData: booking };
+        }
+
         if (booking) {
           await this._bookingRepository.updateBooking(bookingId as string, {
-            // bookingStatus: 'Cancelled',
             bookingStatus: BookingStatus.CANCELLED,
             timeSlotStart: null,
             timeSlotEnd: null,
@@ -203,8 +212,6 @@ export class UserService implements IUserService {
     }
     
     const updatedBooking = await this._bookingRepository.updateBooking(bookingId as string, {
-      // paymentStatus: 'Success',
-      // bookingStatus: 'Confirmed',
       paymentStatus: PaymentStatus.SUCCESS,
       bookingStatus: BookingStatus.CONFIRMED,
     });
@@ -223,6 +230,8 @@ export class UserService implements IUserService {
         console.error("Error logging transaction:", logError);
       }
     }
+    console.log("updatedBooking", updatedBooking);
+    
     return { success: true, message: 'Payment verified and slot booked.', bookingData: updatedBooking! };
     
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

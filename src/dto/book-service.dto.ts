@@ -18,7 +18,7 @@ export interface BookServiceRequestDTO {
 
 export interface BookServiceResponseDTO {
     success?:boolean,
-    message:string,
+    message?:string,
     data?:object
 }
 

@@ -47,7 +47,8 @@ export class SocketConfig {
       console.log('New client connected:', socket.id);
       const user = socket.data.user;
       const bookingId = socket.handshake.query.bookingId as string;
-
+      console.log("User from handshake:", user);
+      console.log("Booking ID from handshake:", bookingId);
       // Join user-specific room
       if (user && user.id) {
         socket.join(`user:${user.id}`);
@@ -92,10 +93,18 @@ export class SocketConfig {
           // Trigger Notification for Chat Message
           const recipientId = user.id === savedMessage.userId.toString() ? savedMessage.technicianId : savedMessage.userId;
           if (recipientId && recipientId.toString() !== user.id) {
-            this.emitToUser(recipientId.toString(), 'message', {
+            this.emitToUser(recipientId.toString(), 'newChatMessage', {
+                // bookingId: savedMessage.bookingId.toString(),
+                // senderId: user.id,
+                // message: messageText,
+
+                // messageId: savedMessage._id!.toString(),
                 bookingId: savedMessage.bookingId.toString(),
-                senderId: user.id,
-                message: messageText,
+                message: savedMessage.messageText, // consistent
+                senderType: savedMessage.senderType,
+                senderId: savedMessage.senderType === 'user' ? savedMessage.userId.toString() : savedMessage.technicianId.toString(),
+                createdAt: savedMessage.createdAt.toISOString(),
+                senderName: senderName
             });
           }
         // eslint-disable-next-line @typescript-eslint/no-explicit-any

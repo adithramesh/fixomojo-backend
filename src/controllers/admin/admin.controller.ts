@@ -10,6 +10,7 @@ import { AuthRequest } from "../../middlewares/auth.middleware";
 import { IAdminService } from "../../services/admin/admin.service.interface";
 import { StreamTokenResponseDTO } from "../../dto/stream.dto";
 import { IStreamService } from "../../services/stream/stream.service.interface";
+import { ServiceLookupDTO } from "../../dto/offer.dto";
 
 type EmptyParams = Record<string, never>;
 
@@ -283,6 +284,16 @@ export class AdminController implements IAdminController {
       const userId = req.user?.id;
       const token = await this._streamService.generateStreamToken(userId!);
       res.status(HttpStatus.SUCCESS).json({success:true,message:'Token Generated', data:{token}, status:HttpStatus.SUCCESS})
+    } catch (error:unknown) {
+      console.error('Error generating Stream token:', error);
+      res.status(HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  async getAllActiveServices(_req:Request, res:Response<ServiceLookupDTO[]>): Promise<void> {
+    try {
+      const response = await this._adminService.getAllActiveServices()
+      res.status(HttpStatus.SUCCESS).json(response)
     } catch (error:unknown) {
       console.error('Error generating Stream token:', error);
       res.status(HttpStatus.INTERNAL_SERVER_ERROR);
