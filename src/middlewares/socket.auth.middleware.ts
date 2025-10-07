@@ -48,7 +48,6 @@ export const socketAuthMiddleware = async (socket: Socket, next: (err?: Error) =
       return next(error);
     }
 
-    // if (user.status === 'blocked' || user.status === 'pending') 
     if (user.status === UserStatus.BLOCKED || user.status === UserStatus.PENDING)  {
       const error: SocketAuthError = new Error('User is blocked or pending') as SocketAuthError;
       error.status = HttpStatus.UNAUTHORIZED;

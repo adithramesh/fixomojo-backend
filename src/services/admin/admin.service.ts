@@ -10,12 +10,13 @@ import { IServiceRepository } from "../../repositories/service/service.repositor
 import { ISubServiceRepository } from "../../repositories/sub-service/sub-service.repository.interface";
 import { IUserRepository } from "../../repositories/user/user.repository.interface";
 import { IBookingRepository } from "../../repositories/booking/booking.repository.interface";
-import { IWalletService } from "../wallet/wallet.service.interface";
-import { IBookingService } from "../booking/booking.service.interface";
 import { ServiceStatus } from "../../utils/service-status.enum";
 import { UserStatus } from "../../utils/user-status.enum";
 import { LicenseStatus } from "../../utils/partner-license-status.enum";
 import { ServiceLookupDTO } from "../../dto/offer.dto";
+import { INotificationService } from "../notification/notification.service.interface";
+import { NotificationType } from "../../models/notification.model";
+import { SocketConfig } from "../../config/socket";
 
 
 @injectable()
@@ -25,8 +26,8 @@ export class AdminService implements IAdminService {
         @inject(TYPES.IUserRepository) private _userRepository:IUserRepository,
         @inject(TYPES.ISubServiceRepository) private _subServiceRepository:ISubServiceRepository,
         @inject(TYPES.IBookingRepository) private _bookingRepository:IBookingRepository,
-        @inject(TYPES.IBookingService) private _bookingService:IBookingService,
-        @inject(TYPES.IWalletService) private _walletService:IWalletService,
+        @inject(TYPES.INotificationService) private _notificationService: INotificationService,
+        @inject(TYPES.SocketConfig) private _socketService: SocketConfig
     ){}
     async createService(serviceData: ServiceRequestDTO): Promise<ServiceResponseDTO> {
         const { serviceName, image, description } = serviceData;
@@ -287,6 +288,16 @@ export class AdminService implements IAdminService {
         if(!updatedUser){
           throw new Error('Failed to retrieve updated user');
         }
+
+        if(updatedUser.status === UserStatus.BLOCKED ){
+          await this._notificationService.createNotification(
+                      updatedUser.id,
+                      updatedUser.role,
+                      NotificationType.SystemAlert,
+                      `Your account status has been changed to ${updatedUser.status}.`
+                    );
+              this._socketService.emitToUser(updatedUser.id.toString(), 'end-call', { reason: 'account_blocked' });
+        }
     
         return {
           id: (updatedUser._id as mongoose.Types.ObjectId).toString(),
@@ -304,19 +315,18 @@ export class AdminService implements IAdminService {
       }
     }
 
-    // async updateUser(userId: string, updateData: Partial<IUser>): Promise<UserResponseDTO> {
      async updateUser(userId: string, updateData: {location:{address:string; latitude:number; longitude:number}}): Promise<UserResponseDTO> {
       try {
         const user = await this._userRepository.findUserById(userId)
         if(!user){
-          throw new Error('Service not found to update'); 
+          throw new Error('User not found to update'); 
         }
 
         await this._userRepository.updateUser(userId, updateData)
 
         const updatedUser = await this._userRepository.findUserById(userId)
          if(!updatedUser){
-          throw new Error('Failed to retrieve updated service');
+          throw new Error('Failed to retrieve updated user');
         }
         
         return {
@@ -455,23 +465,7 @@ export class AdminService implements IAdminService {
       }
     }
 
-    // async getDashboard(userId:string, startDate?: string, endDate?: string): Promise<AdminDashboardResponseDTO> {
-    //   try {
-    //     const totalCustomers = await this._userRepository.countUsers({role:'user'})
-    //     const totalBookings = await this._bookingRepository.countBookings({startDate, endDate});
-    //     const activePartners = await this._userRepository.countUsers({role:'partner', status:'active'})
-    //     let totalRevenue = (await this._walletService.getWallet(userId))?.wallet?.balance
-    //     if(!totalRevenue){
-    //       totalRevenue=0
-    //     }
-    //     const bookingStatusDistribution=await this._bookingRepository.getBookingStatusDistribution()
-    //     const revenueTrends = await this._bookingRepository.getRevenueTrends()
-    //     return {totalCustomers,totalBookings,activePartners,totalRevenue, bookingStatusDistribution,revenueTrends}
-    //   } catch (error) {
-    //     console.error('Error in getDashboard:', error);
-    //     throw new Error('Failed to fetch dashboard data');
-    //   }
-    // }
+ 
 
     async getDashboard( startDate?: string, endDate?: string): Promise<AdminDashboardResponseDTO> {
     try {
@@ -485,7 +479,6 @@ export class AdminService implements IAdminService {
         startDate, endDate
       });
 
-      // let totalRevenue = (await this._walletService.getWallet(userId))?.wallet?.balance;
       let totalRevenue = await this._bookingRepository.calculateTotalRevenue(startDate, endDate);
 
       if (!totalRevenue) totalRevenue = 0;

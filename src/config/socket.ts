@@ -94,11 +94,6 @@ export class SocketConfig {
           const recipientId = user.id === savedMessage.userId.toString() ? savedMessage.technicianId : savedMessage.userId;
           if (recipientId && recipientId.toString() !== user.id) {
             this.emitToUser(recipientId.toString(), 'newChatMessage', {
-                // bookingId: savedMessage.bookingId.toString(),
-                // senderId: user.id,
-                // message: messageText,
-
-                // messageId: savedMessage._id!.toString(),
                 bookingId: savedMessage.bookingId.toString(),
                 message: savedMessage.messageText, // consistent
                 senderType: savedMessage.senderType,

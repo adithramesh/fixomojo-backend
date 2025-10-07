@@ -30,11 +30,11 @@ export class AdminRoutes {
         this.router.get('/active-services', authMiddleware([Role.ADMIN]), this._adminController.getAllActiveServices.bind(this._adminController))
         //location
         this.router.patch('/partner/:id/location', authMiddleware([Role.ADMIN]), this._adminController.updateUser.bind(this._adminController))
-        this.router.get('/saved-location', authMiddleware([Role.ADMIN]), this._adminController.savedLocation.bind(this._adminController))
+        this.router.get('/saved-location', authMiddleware([Role.ADMIN, Role.PARTNER]), this._adminController.savedLocation.bind(this._adminController))
         //dashboard
         this.router.get('/dashboard', authMiddleware([Role.ADMIN]), this._adminController.getDashboard.bind(this._adminController))
         //video-call
-        this.router.post('/stream-token', authMiddleware([Role.ADMIN]), this._adminController.getStreamToken.bind(this._adminController))
+        this.router.post('/stream-token', authMiddleware([Role.ADMIN, Role.PARTNER]), this._adminController.getStreamToken.bind(this._adminController))
 
         // Admin + User routes 
         this.router.get('/user-management', authMiddleware([Role.ADMIN, Role.USER]), (req, res) => this._adminController.getUsers(req, res))

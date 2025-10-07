@@ -14,22 +14,6 @@ export class OfferService implements IOfferService {
     @inject(TYPES.IBookingRepository) private _bookingRepository: IBookingRepository
   ) {}
 
-  // async addOffer(data: Partial<IOffer>): Promise<{ success: boolean; message: string; data?: IOffer }> {
-  //   try {
-  //     const response = await this._offerRepository.createOffer(data);
-  //     return {
-  //       success: true,
-  //       message: "Offer created successfully",
-  //       data: response,
-  //     };
-  //   } catch (error) {
-  //     console.error("Error creating offer:", error);
-  //     return {
-  //       success: false,
-  //       message: "Failed to create offer",
-  //     };
-  //   }
-  // }
 
   async addOffer(data: Partial<IOffer>): Promise<{ success: boolean; message: string; data?: IOffer }> {
     try {
