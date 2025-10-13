@@ -138,9 +138,12 @@ export class BookingRepository extends BaseRepository<IBooking> implements IBook
 
   async countBookingsByUserId(userId: string, filter: Record<string, unknown> = {}) {
       const query = {
-        userId,
+        userId:userId,
         ...filter
       };
+
+      console.log("query", query);
+      
       return await Booking.countDocuments(query)
     }
 

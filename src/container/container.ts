@@ -75,6 +75,8 @@ import { IOfferService } from '../services/offer/offer.service.interface'
 import { IOfferController } from '../controllers/offer/offer.controller.interface'
 import { OfferService } from '../services/offer/offer.service'
 import { OfferRoutes } from '../routes/offer.routes'
+import { ICalendarProvider } from '../services/calendar/calender.provider.interface'
+import { GoogleCalendarProvider } from '../services/calendar/google-calendar.provider'
 
 
 const container = new Container()
@@ -138,6 +140,8 @@ container.bind<OfferRoutes>(TYPES.OfferRoutes).to(OfferRoutes)
 container.bind<SocketConfig>(TYPES.SocketConfig).to(SocketConfig).inSingletonScope();
 
 container.bind<IStreamService>(TYPES.IStreamService).to(StreamService);
+
+container.bind<ICalendarProvider>(TYPES.ICalendarProvider).to(GoogleCalendarProvider)
 
 
 export default container;

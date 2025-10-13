@@ -4,7 +4,7 @@ import { IUserService } from "./user.service.interface";
 import { TYPES } from "../../types/types";
 import { BookServiceRequestDTO, BookServiceResponseDTO } from "../../dto/book-service.dto";
 import mongoose from "mongoose";
-import { stripe } from "../../config/stripe.config";
+import { getStripeUrls, stripe } from "../../config/stripe.config";
 import { IBooking } from "../../models/booking.model";
 import { ITransactionService } from "../transaction/transaction.service.interface";
 import { IWalletService } from "../wallet/wallet.service.interface";
@@ -78,7 +78,7 @@ export class UserService implements IUserService {
 
     if (data.paymentMethod === 'Card') {
       const amountInCents = Math.round(data.totalAmount * 100);
-
+      const { success, cancel } = getStripeUrls();
       const session = await stripe.checkout.sessions.create({
         payment_method_types: ['card'],
         mode: 'payment',
@@ -100,11 +100,8 @@ export class UserService implements IUserService {
            subServiceId: data.subServiceId,
            technicianId: data.technicianId,
         },
-        success_url: `http://localhost:4200/payment-success?session_id={CHECKOUT_SESSION_ID}&type=card`,
-        cancel_url: 'http://localhost:4200/payment-cancelled',
-
-        // success_url: `https://sm9gg31b-4200.inc1.devtunnels.ms/payment-success?session_id={CHECKOUT_SESSION_ID}&type=card`,
-        // cancel_url: 'https://sm9gg31b-4200.inc1.devtunnels.ms/payment-cancelled',
+        success_url: `${success}&type=card`,
+        cancel_url: cancel,
       });
 
       return {
@@ -341,9 +338,9 @@ async updateProfile(userId:string, userData:object):Promise<Partial<UserResponse
   }
   async getPartnerDashboard(userId:string): Promise<PartnerDashboardResponseDTO> {
           try {
-            const totalBookings = await this._bookingRepository.countBookings({});
-            const completedBookings = await this._bookingRepository.countBookings({bookingStatus:'Completed'});
-            const cancelledBookings = await this._bookingRepository.countBookings({bookingStatus:'Cancelled'});
+            const totalBookings = await this._bookingRepository.countBookings({technicianId:userId});
+            const completedBookings = await this._bookingRepository.countBookings({technicianId:userId,bookingStatus:'Completed'});
+            const cancelledBookings = await this._bookingRepository.countBookings({technicianId:userId,bookingStatus:'Cancelled'});
             // const avgTaskPerDay = await this._userRepository.countUsers({role:'user'})
             let totalRevenue = (await this._walletService.getWallet(userId))?.wallet?.balance
             if(!totalRevenue){

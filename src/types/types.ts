@@ -62,5 +62,7 @@ export const TYPES={
 
     SocketConfig: Symbol.for('SocketConfig'),
 
-    IStreamService: Symbol.for('IStreamService')
+    IStreamService: Symbol.for('IStreamService'),
+
+    ICalendarProvider:Symbol.for('ICalendarProvider')
 }

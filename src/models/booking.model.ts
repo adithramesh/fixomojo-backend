@@ -18,8 +18,6 @@ export interface IBooking extends Document {
     googleEventId?: string; 
     totalAmount:number;
     paymentMethod:"Cash" | "Card" | "Wallet";
-    // bookingStatus: "Hold" |"Pending" | "Confirmed" | "Cancelled"| "Completed" | "Failed";
-    // paymentStatus: "Pending" | "Success" | "Failed";
     bookingStatus: BookingStatus;
     paymentStatus: PaymentStatus
     isCompleted?:boolean;

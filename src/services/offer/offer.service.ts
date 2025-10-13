@@ -239,6 +239,8 @@ export class OfferService implements IOfferService {
     appliedOfferName?: string;
   }> {
     const userBookings = await this._bookingRepository.countBookingsByUserId(userId, {});
+    console.log("userBookings", userBookings);
+    
     const isFirstTimeUser = userBookings === 0;
 
     interface OfferFilter {

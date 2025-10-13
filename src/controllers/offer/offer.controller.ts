@@ -127,7 +127,7 @@ export class OfferController implements IOfferController {
 
   async applyBestOffer(req:AuthRequest, res:Response): Promise<void>{
     try {
-      const id= req.params.id
+      const id= req.user?.id.toString() || "";
       const price=Number(req.query.price)
       if (isNaN(price)) {
         res.status(HttpStatus.BAD_REQUEST).json({ success: false, message: "Invalid price value" });
