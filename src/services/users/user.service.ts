@@ -4,13 +4,18 @@ import { IUserService } from "./user.service.interface";
 import { TYPES } from "../../types/types";
 import { BookServiceRequestDTO, BookServiceResponseDTO } from "../../dto/book-service.dto";
 import mongoose from "mongoose";
-import { stripe } from "../../config/stripe.config";
+import { getStripeUrls, stripe } from "../../config/stripe.config";
 import { IBooking } from "../../models/booking.model";
 import { ITransactionService } from "../transaction/transaction.service.interface";
 import { IWalletService } from "../wallet/wallet.service.interface";
 import { IBookingRepository } from "../../repositories/booking/booking.repository.interface";
 import { ITimeSlotService } from "../time-slot/time-slot.service.interface";
 import { IServiceRepository } from "../../repositories/service/service.repository.interface";
+import { UserResponseDTO } from "../../dto/admin.dto";
+import { IUserRepository } from "../../repositories/user/user.repository.interface";
+import { PartnerDashboardResponseDTO } from "../../dto/partner.dto";
+import { BookingStatus } from "../../utils/booking-status.enum";
+import { PaymentStatus } from "../../utils/payment-status.enum";
 
 
 @injectable()
@@ -20,15 +25,9 @@ export class UserService implements IUserService {
         @inject(TYPES.IBookingRepository) private _bookingRepository:IBookingRepository,
         @inject(TYPES.ITimeSlotService) private _timeSlotService:ITimeSlotService,
         @inject(TYPES.IWalletService) private _walletService:IWalletService,
-        @inject(TYPES.ITransactionService) private _transactionService:ITransactionService
+        @inject(TYPES.ITransactionService) private _transactionService:ITransactionService,
+        @inject(TYPES.IUserRepository) private _userRepository:IUserRepository,
     ){}
-    // async getHome(): Promise<HomeResponseDTO> {
-    //    const serviceData = await this._serviceRepository.findServciesPaginated()
-    //    const homeData={
-    //     serviceNames:serviceData
-    //    }
-    //    return homeData
-    // }
 
     async getHome(searchTerm:string): Promise<HomeResponseDTO> {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -63,7 +62,7 @@ export class UserService implements IUserService {
         timeSlotStart: data.timeSlotStart,
         timeSlotEnd: data.timeSlotEnd,
         bookingStatus: { $in: ['Hold', 'Confirmed'] },
-        createdAt: { $gt: new Date(Date.now() - 5 * 60 * 1000) }, // Only consider recent Holds
+        createdAt: { $gt: new Date(Date.now() - 5 * 60 * 1000) }, 
       });
 
       if (existingBooking) {
@@ -71,13 +70,15 @@ export class UserService implements IUserService {
       }
     const newBooking = await this._bookingRepository.createBooking({
       ...data,
-      bookingStatus: 'Hold', // 🟡 Initial temporary hold
-      paymentStatus: 'Pending'
+      bookingStatus: BookingStatus.HOLD,
+      paymentStatus: PaymentStatus.PENDING
     });
+    console.log("newBooking", newBooking);
+    
 
     if (data.paymentMethod === 'Card') {
       const amountInCents = Math.round(data.totalAmount * 100);
-
+      const { success, cancel } = getStripeUrls();
       const session = await stripe.checkout.sessions.create({
         payment_method_types: ['card'],
         mode: 'payment',
@@ -99,8 +100,8 @@ export class UserService implements IUserService {
            subServiceId: data.subServiceId,
            technicianId: data.technicianId,
         },
-        success_url: `http://localhost:4200/payment-success?session_id={CHECKOUT_SESSION_ID}&type=card`,
-        cancel_url: 'http://localhost:4200/payment-cancelled',
+        success_url: `${success}&type=card`,
+        cancel_url: cancel,
       });
 
       return {
@@ -146,17 +147,19 @@ export class UserService implements IUserService {
       return { success: false, message: 'Payment not completed.' };
     }
 
-    // const booking = await this._bookingRepository.findBookingById(bookingId as string);
-    // if (!booking || booking.bookingStatus !== 'Hold') {
-    //   return { success: false, message: 'Slot already taken or booking expired.' };
-    // }
-
-     // Check if booking is still in Hold and not expired
       const booking = await this._bookingRepository.findBookingById(bookingId as string);
-      if (!booking || booking.bookingStatus !== 'Hold' || booking.createdAt < new Date(Date.now() - 5 * 60 * 1000)) {
+      const isReadyToProcess = booking && (booking.bookingStatus === 'Hold' || booking.bookingStatus === BookingStatus.CONFIRMED);
+      const isExpired = booking && booking.createdAt < new Date(Date.now() - 5 * 60 * 1000);
+      // if (!booking || booking.bookingStatus !== 'Hold' || booking.createdAt < new Date(Date.now() - 5 * 60 * 1000)) {
+      if (!booking || !isReadyToProcess || isExpired) {
+        //condition for second hit
+        if (booking && booking.bookingStatus === BookingStatus.CONFIRMED) {
+            return { success: true, message: 'Payment verified and slot already confirmed.', bookingData: booking };
+        }
+
         if (booking) {
           await this._bookingRepository.updateBooking(bookingId as string, {
-            bookingStatus: 'Cancelled',
+            bookingStatus: BookingStatus.CANCELLED,
             timeSlotStart: null,
             timeSlotEnd: null,
           });
@@ -164,7 +167,7 @@ export class UserService implements IUserService {
         return { success: false, message: 'Booking expired or invalid.' };
       }
 
-      // Check for conflicting Confirmed bookings
+     
       const conflictingBooking = await this._bookingRepository.findOneBooking({
         technicianId: booking.technicianId,
         timeSlotStart: booking.timeSlotStart,
@@ -175,14 +178,14 @@ export class UserService implements IUserService {
 
       if (conflictingBooking) {
         await this._bookingRepository.updateBooking(bookingId as string, {
-          bookingStatus: 'Cancelled',
+          // bookingStatus: 'Cancelled',
+          bookingStatus: BookingStatus.CANCELLED,
           timeSlotStart: null,
           timeSlotEnd: null,
         });
         return { success: false, message: 'Slot already booked by another user.' };
       }
 
-    // Proceed to confirm and block slot
     const blockResult = await this._timeSlotService.blockSlot({
       technicianId: booking.technicianId,
       bookingId: booking._id?booking._id.toString():"",
@@ -197,8 +200,8 @@ export class UserService implements IUserService {
     
     if (!blockResult.success ) {
       await this._bookingRepository.updateBooking(bookingId as string, {
-        paymentStatus: 'Success',
-        bookingStatus: 'Failed',
+        paymentStatus: PaymentStatus.SUCCESS,
+        bookingStatus: BookingStatus.FAILED,
         timeSlotStart:null,
         timeSlotEnd:null
       });
@@ -206,8 +209,8 @@ export class UserService implements IUserService {
     }
     
     const updatedBooking = await this._bookingRepository.updateBooking(bookingId as string, {
-      paymentStatus: 'Success',
-      bookingStatus: 'Confirmed',
+      paymentStatus: PaymentStatus.SUCCESS,
+      bookingStatus: BookingStatus.CONFIRMED,
     });
 
     if(updatedBooking){
@@ -222,9 +225,10 @@ export class UserService implements IUserService {
         });
       } catch (logError) {
         console.error("Error logging transaction:", logError);
-        // Optionally, you can handle this error further, e.g., update booking status
       }
     }
+    console.log("updatedBooking", updatedBooking);
+    
     return { success: true, message: 'Payment verified and slot booked.', bookingData: updatedBooking! };
     
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -242,7 +246,7 @@ export class UserService implements IUserService {
     return { success: false, message: 'Slot already taken or booking expired.' };
   }
 
-  // 1. Attempt to debit wallet
+  
   const walletResult = await this._walletService.credit(
     newBooking.userId,
     -newBooking.totalAmount,
@@ -257,11 +261,10 @@ export class UserService implements IUserService {
   });
     return {
       success: false,
-      message: walletResult.message, // e.g., "Insufficient balance in wallet"
+      message: walletResult.message, 
     };
   }
 
-  // 2. Block the slot (only if wallet debit succeeded)
   const blockResult = await this._timeSlotService.blockSlot({
     technicianId: newBooking.technicianId,
     bookingId: newBooking._id?.toString() || '',
@@ -271,20 +274,17 @@ export class UserService implements IUserService {
     isCustomerBooking: true,
   });
 
-  if (!blockResult.success) {
-    // Optional: Refund wallet here if needed (not mandatory)
-    // await this._walletService.credit(newBooking.userId, +newBooking.totalAmount, 'user', newBooking._id);
-
+  if (!blockResult.success) {  
     return { success: false, message: blockResult.message };
   }
 
-  // 3. Confirm booking
   const updatedBooking = await this._bookingRepository.updateBooking(newBooking._id, {
-    paymentStatus: 'Success',
-    bookingStatus: 'Confirmed',
+    // paymentStatus: 'Success',
+    // bookingStatus: 'Confirmed',
+    paymentStatus: PaymentStatus.SUCCESS,
+    bookingStatus: BookingStatus.CONFIRMED,
   });
 
-  // 4. Log transaction
   try {
     await this._transactionService.logTransaction({
       userId: newBooking.userId,
@@ -308,5 +308,53 @@ export class UserService implements IUserService {
   };
 }
 
+async getProfile(userId: string): Promise<Partial<UserResponseDTO>> {
+  const user = await this._userRepository.findUserById(userId)
+  if(!user){
+    throw new Error('Invalid user ID')
+  }
+  const userData={
+    username:user.username,
+    profilePic:user.image,
+    phoneNumber:user.phoneNumber
+  }
+  return userData
+}
+
+async updateProfile(userId:string, userData:object):Promise<Partial<UserResponseDTO>> {
+    const user = await this._userRepository.findUserById(userId)
+        if(!user){
+          throw new Error('User not found to update'); 
+        }
+     const updatedUser =  await this._userRepository.updateUser(userId, userData);
+     if(!updatedUser){
+        throw new Error('failed to retrieve updated user'); 
+     }
+
+     return{
+      image:updatedUser.image,
+      username:updatedUser.username
+     }
+  }
+  async getPartnerDashboard(userId:string): Promise<PartnerDashboardResponseDTO> {
+          try {
+            const totalBookings = await this._bookingRepository.countBookings({technicianId:userId});
+            const completedBookings = await this._bookingRepository.countBookings({technicianId:userId,bookingStatus:'Completed'});
+            const cancelledBookings = await this._bookingRepository.countBookings({technicianId:userId,bookingStatus:'Cancelled'});
+            // const avgTaskPerDay = await this._userRepository.countUsers({role:'user'})
+            let totalRevenue = (await this._walletService.getWallet(userId))?.wallet?.balance
+            if(!totalRevenue){
+              totalRevenue=0
+            }
+            console.log("totalRevenue, totalBookings, completedBookings, cancelledBookings", totalRevenue, totalBookings, completedBookings, cancelledBookings);
+            
+            return {totalRevenue, totalBookings, completedBookings, cancelledBookings}
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          } catch (error:any) {
+            console.error("Error in saved location service:", error);
+            throw error;
+          }
+        }
+  
 
 }

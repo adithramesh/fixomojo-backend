@@ -42,6 +42,27 @@ export const TYPES={
     ITransactionRepository: Symbol.for("ITransactionRepository"),
     ITransactionService: Symbol.for("ITransactionService"),
     ITransactionController: Symbol.for("ITransactionController"),
-    TransactionRoutes: Symbol.for("TransactionRoutes")
+    TransactionRoutes: Symbol.for("TransactionRoutes"),
 
+    IChatRepository: Symbol.for("IChatRepository"),
+    IChatService: Symbol.for("IChatService"),
+    IChatController: Symbol.for("IChatController"),
+    ChatRoutes: Symbol.for("ChatRoutes"),
+
+    INotificationRepository: Symbol.for("INotificationRepository"),
+    INotificationService: Symbol.for("INotificationService"),
+    INotificationController: Symbol.for("INotificationController"),
+    NotificationRoutes: Symbol.for("NotificatonRoutes"),
+
+    IOfferRepository: Symbol.for("IOfferRepository"),
+    IOfferService: Symbol.for("IOfferService"),
+    IOfferController: Symbol.for("IOfferController"),
+    OfferRoutes: Symbol.for("OfferRoutes"),
+
+
+    SocketConfig: Symbol.for('SocketConfig'),
+
+    IStreamService: Symbol.for('IStreamService'),
+
+    ICalendarProvider:Symbol.for('ICalendarProvider')
 }

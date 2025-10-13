@@ -53,11 +53,20 @@ export class BookingRepository extends BaseRepository<IBooking> implements IBook
     // async countBookings(filter: Record<string, unknown> = {}) {
     //     return await this.count(filter);
     // }
-    async countBookings(filter: Record<string, unknown> = {}) {
-        const totalBookings=await this.find(filter);
-        const count=totalBookings.length
-        console.log("length", count);
-        return count
+    async countBookings(filter: Record<string, unknown> = {},startDate?: string, endDate?: string) {
+      const query: Record<string, unknown> = { ...filter };
+        // const totalBookings=await this.find(filter);
+        // const count=totalBookings.length
+        // console.log("length", count);
+        // return count
+        if (startDate && endDate) {
+              query.createdAt = {
+                $gte: new Date(startDate),
+                $lte: new Date(endDate)
+              };
+        }
+
+        return await Booking.countDocuments(query);
     }
 
     async findBookingByIdAndUpdateStatus(bookingId: string, expectedStatus: string, newStatus: string, session?: mongoose.ClientSession): Promise<IBooking | null> {
@@ -67,5 +76,95 @@ export class BookingRepository extends BaseRepository<IBooking> implements IBook
             { session, new: true }
         );
     }
+
+    async getBookingStatusDistribution(startDate?: string, endDate?: string): Promise<{ status: string; count: number }[]>{
+      // return await Booking.aggregate([{$group:{_id:`$bookingStatus`,count:{$sum:1}}},{$project:{_id:0,status:'$_id',count:'$count'}}])
+       const matchStage: Record<string, unknown> = {};
+      if (startDate && endDate) {
+        matchStage.createdAt = {
+          $gte: new Date(startDate),
+          $lte: new Date(endDate)
+        };
+      }
+
+      return await Booking.aggregate([
+        { $match: matchStage },
+        { $group: { _id: `$bookingStatus`, count: { $sum: 1 } } },
+        { $project: { _id: 0, status: '$_id', count: '$count' } }
+      ]);
+    }
+
+    // async getRevenueTrends(): Promise<{ week: number; totalRevenue: number; }[]>{
+    //   const eightWeeksAgo = new Date();
+    //   eightWeeksAgo.setDate(eightWeeksAgo.getDate() - 56); // 8 weeks * 7 days
+    //   return await Booking.aggregate([{$match:{bookingStatus:'Completed',createdAt:{$gte:eightWeeksAgo}}},{$group:{_id:{$isoWeek:'$createdAt'}, totalRevenue:{ $sum: { $multiply: ['$totalAmount', 0.2] } }}},{$sort:{_id:1}},{$project:{_id:0,week:"$_id", totalRevenue:'$totalRevenue'}}])
+    // }
+
+    async getRevenueTrends(startDate?: string, endDate?: string): Promise<{ week: number; totalRevenue: number }[]> {
+      const matchStage: Record<string, unknown> = { bookingStatus: 'Completed' };
+
+      if (startDate && endDate) {
+        matchStage.createdAt = {
+          $gte: new Date(startDate),
+          $lte: new Date(endDate)
+        };
+      } else {
+        // default = last 8 weeks
+        const eightWeeksAgo = new Date();
+        eightWeeksAgo.setDate(eightWeeksAgo.getDate() - 56);
+        matchStage.createdAt = { $gte: eightWeeksAgo };
+      }
+
+      return await Booking.aggregate([
+        { $match: matchStage },
+        {
+          $group: {
+            _id: { $isoWeek: '$createdAt' },
+            totalRevenue: { $sum: { $multiply: ['$totalAmount', 0.2] } }
+          }
+        },
+        { $sort: { _id: 1 } },
+        { $project: { _id: 0, week: '$_id', totalRevenue: '$totalRevenue' } }
+      ]);
+        }
+    
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  async gateSalesreportData(filters:{startDate:Date, endDate:Date, paymentStatus:string}):Promise<any[]> {
+    return await Booking.find({createdAt:{$gte:filters.startDate, $lte:filters.endDate }, paymentSuccess:filters.paymentStatus})
+    .select('_id createdAt username subServiceName totalAmount paymentMethod bookingStatus paymentStatus timeSlotStart')
+    .sort({createdAt:-1})
+    .lean()
+  }
+
+  async countBookingsByUserId(userId: string, filter: Record<string, unknown> = {}) {
+      const query = {
+        userId:userId,
+        ...filter
+      };
+
+      console.log("query", query);
+      
+      return await Booking.countDocuments(query)
+    }
+
+  async calculateTotalRevenue(startDate?: string, endDate?: string): Promise<number> {
+    const matchStage: Record<string, unknown> = { bookingStatus: 'Completed' };
+
+    if (startDate && endDate) {
+      matchStage.createdAt = {
+        $gte: new Date(startDate),
+        $lte: new Date(endDate)
+      };
+    }
+    console.log("matchStage",matchStage);
+    
+    const result = await Booking.aggregate([
+      { $match: matchStage },
+      { $group: { _id: null, total: { $sum: { $multiply: ['$totalAmount', 0.2] } } } }
+    ]);
+    console.log("result",result);
+    return result.length ? result[0].total : 0;
+  }
+
 
 }

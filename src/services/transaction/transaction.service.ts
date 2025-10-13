@@ -1,18 +1,17 @@
 import { inject, injectable } from "inversify";
 import { ITransaction } from "../../models/transaction.model";
 import { ITransactionService } from "./transaction.service.interface";
-// import { TransactionRepository } from "../../repositories/transaction/transaction.repository";
 import { TYPES } from "../../types/types";
 import { PaginationRequestDTO } from "../../dto/admin.dto";
 import { ITransactionRepository } from "../../repositories/transaction/transaction.repository.interface";
+import { TransactionResponseDTO } from "../../dto/transaction.dto";
 
 @injectable()
 export class TransactionService implements ITransactionService{
     constructor(
-        // @inject(TYPES.TransactionRepository) private _transactionRepository:TransactionRepository
         @inject(TYPES.ITransactionRepository) private _transactionRepository:ITransactionRepository
     ){}
-    async logTransaction(data: Partial<ITransaction>): Promise<{transaction?:Partial<ITransaction>,success:boolean,  message:string}> {
+    async logTransaction(data: {userId:string; bookingId:string; amount:number}): Promise<{transaction?:Partial<ITransaction>,success:boolean,  message:string}> {
         try {
             console.log("data inside transaction service log transaction:", data)
             const response= await this._transactionRepository.logTransaction(data)
@@ -29,11 +28,11 @@ export class TransactionService implements ITransactionService{
         }
     }
 
-    async getTransactionByReference(referenceId: string): Promise<ITransaction | null> {
+    async getTransactionByReference(referenceId: string): Promise<TransactionResponseDTO | null> {
         return await this._transactionRepository.getTransactionByReference(referenceId);
         }
 
-    async getTransactionByUserPaginated(pagination: PaginationRequestDTO, userId:string):Promise<{ success: boolean; message: string; transactionList?: Partial<ITransaction[]> }> {
+    async getTransactionByUserPaginated(pagination: PaginationRequestDTO, userId:string):Promise<{ success: boolean; message: string; transactionList?: TransactionResponseDTO[] }> {
         try {
           const { page, pageSize, sortBy, sortOrder, filter = {} } = pagination; 
           const skip = (page-1)*pageSize
@@ -56,9 +55,9 @@ export class TransactionService implements ITransactionService{
         }
     }
 
-    async countTransaction(userId: string): Promise<{count?:number,success:boolean, message:string}> {
+    async countTransaction(userId: string, filter:Record<string, unknown>): Promise<{count?:number,success:boolean, message:string}> {
         try {
-            const count = await this._transactionRepository.countTransactions(userId)
+            const count = await this._transactionRepository.countTransactions(userId, filter)
             
             return{
                 success:true,

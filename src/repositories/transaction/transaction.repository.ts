@@ -40,11 +40,13 @@ export class TransactionRepository
   }
 
 
-  async countTransactions(userId: string) {
-    const totalTransactions = await this.find({userId});
-    // const totalBookings=this.getAllBookings()
-    const count = totalTransactions.length;
-    console.log("length", count);
-    return count;
+  async countTransactions(userId: string, filter: Record<string, unknown> = {}) {
+
+    const query = {
+      userId,
+      ...filter
+    };
+    return await Transaction.countDocuments(query)
   }
+
 }

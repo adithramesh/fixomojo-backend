@@ -24,14 +24,13 @@ export class UserRepository extends BaseRepository<IUser> implements IUserReposi
     } 
     async findAllUsers(): Promise<IUser[]> {
         const users = await this.find()
-        // const userNames :string[]=users.map(user=>user.username)
         return users
     }
 
     async findUsersPaginated(skip: number,limit: number,sortBy: string,sortOrder: string,filter:Record<string, unknown> = {}) 
     {
-        const sortDirection: 1 | -1 = sortOrder === 'asc' ? 1 : -1; // Explicitly type sortDirection
-        const sortOptions: Record<string, 1 | -1> = sortBy ? { [sortBy]: sortDirection } : {}; // Use Record and handle empty sortBy
+        const sortDirection: 1 | -1 = sortOrder === 'asc' ? 1 : -1; 
+        const sortOptions: Record<string, 1 | -1> = sortBy ? { [sortBy]: sortDirection } : {}; 
         return await User.find(filter)
           .sort(sortOptions)
           .skip(skip)
@@ -39,8 +38,16 @@ export class UserRepository extends BaseRepository<IUser> implements IUserReposi
           .exec();
       }
     
-    async countUsers(filter: Record<string, unknown> = {}) {
-        return await this.count(filter);
+    async countUsers(filter: Record<string, unknown> = {},startDate?: string, endDate?: string) {
+        const query: Record<string, unknown> = { ...filter };
+       
+        if (startDate && endDate) {
+              query.createdAt = {
+                $gte: new Date(startDate),
+                $lte: new Date(endDate)
+              };
+        }
+        return await this.count(query);
     }
 
 }

@@ -1,6 +1,5 @@
 import { OtpRequestDTO, OtpResendRequestDTO } from "../../dto/otp-verify.dto";
 import { SignupUserRequestDTO, SignupResponseDTO } from "../../dto/signup.dto";
-import { IUser } from "../../models/user.model";
 import { TYPES } from "../../types/types";
 import { IAuthService } from "./auth.service.interface";
 import { IOtpService } from "./otp.service";
@@ -38,11 +37,11 @@ export class AuthService implements IAuthService {
             return { success: false, message: "Phone number already exists", status: HttpStatus.BAD_REQUEST };
         }
         const hashedPassword = await this._passwordService.hash(password);
-        const userModel: Partial<IUser> = {
+        const userModel: SignupUserRequestDTO = {
             username,
             email,
             phoneNumber,
-            password: hashedPassword, // Mongoose expects "password", not "passwordHash"
+            password: hashedPassword, 
             role,
             serviceType,
             adminCode,
@@ -103,16 +102,17 @@ export class AuthService implements IAuthService {
             if (!user.phoneVerified) {
                 await this._userRepository.updateUser(tempUserId, { phoneVerified: true });
             }
+            
             const accessToken = jwt.sign(
                 { id: userId, role: user.role },
                 config.JWT_SECRET,
-                { expiresIn: "15m" }
+                { expiresIn: config.ACCESS_TOKEN_EXPIRY as jwt.SignOptions["expiresIn"] }
             );
             
             const refreshToken = jwt.sign(
                 { id: userId },
                 config.JWT_SECRET,
-                { expiresIn: "7d" }
+                { expiresIn: config.REFRESH_TOKEN_EXPIRY as jwt.SignOptions["expiresIn"] }
             );
             return {
                 success: true,
@@ -131,7 +131,7 @@ export class AuthService implements IAuthService {
         } else if (context === 'forgot-password') {
             console.log("inside verfy otp forgot password context", context);
             
-            const resetToken = jwt.sign({ id: userId }, config.JWT_SECRET, { expiresIn: "10m" });
+            const resetToken = jwt.sign({ id: userId }, config.JWT_SECRET, { expiresIn: "15m" });
             return {
                 success: true,
                 message: "OTP verified, proceed to reset password",
@@ -150,7 +150,6 @@ export class AuthService implements IAuthService {
         console.log("tempUserId, phoneNumber", tempUserId, phoneNumber);
         
         const user = await this._userRepository.findUserById(tempUserId);
-        console.log("user", user);
 
         if (!user) {
             return { success: false, message: "Invalid user", status: HttpStatus.NOT_FOUND };
@@ -204,7 +203,7 @@ export class AuthService implements IAuthService {
             return { success: false, message: "Invalid password", status: HttpStatus.UNAUTHORIZED };
         }
         const userId = (user._id as mongoose.Types.ObjectId).toString();
-        const accessToken = jwt.sign({ id: userId, role: user.role }, config.JWT_SECRET, { expiresIn: "1m" });
+        const accessToken = jwt.sign({ id: userId, role: user.role }, config.JWT_SECRET, { expiresIn: "1h" });
         const refreshToken = jwt.sign({ id: userId }, config.JWT_SECRET, { expiresIn: "7d" });
         console.log("access_token",accessToken);
         
@@ -244,14 +243,11 @@ export class AuthService implements IAuthService {
 
     async resetPassword(resetData: ResetPasswordRequestDTO): Promise<SignupResponseDTO> {
         const { tempUserId, reset_token, newPassword } = resetData;
-        // console.log("tempuserid 1", tempUserId);
-        // console.log("newPassword", newPassword);
+
         try {
             jwt.verify(reset_token, config.JWT_SECRET);
             
             const hashedPassword = await this._passwordService.hash(newPassword);
-            // console.log("hashedPassword",hashedPassword);
-            // console.log("tempuserid 2", tempUserId);
             await this._userRepository.updateUser(tempUserId, { password: hashedPassword });
             
             return {

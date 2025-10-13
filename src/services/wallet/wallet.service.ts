@@ -1,10 +1,8 @@
 import { inject, injectable } from "inversify";
 import { IWalletService } from "./wallet.service.interface";
 import { TYPES } from "../../types/types";
-// import { WalletRepository } from "../../repositories/wallet/wallet.repository";
 import { IWallet } from "../../models/wallet.model";
-import { stripe } from "../../config/stripe.config";
-// import { TransactionService } from "../transaction/transaction.service";
+import { getStripeUrls, stripe } from "../../config/stripe.config";
 import { ITransactionService } from "../transaction/transaction.service.interface";
 import { IWalletRepository } from "../../repositories/wallet/wallet.repository.interface";
 
@@ -84,6 +82,7 @@ async walletRecharge(userId:string, amount: number): Promise<{ success: boolean;
         };
       }
           const amountInCents = Math.round(amount * 100);
+          const { success, cancel } = getStripeUrls();
           const session = await stripe.checkout.sessions.create({
           payment_method_types: ['card'],
           mode: 'payment',
@@ -104,8 +103,10 @@ async walletRecharge(userId:string, amount: number): Promise<{ success: boolean;
             amount: amount.toString(),
             purpose: 'Wallet Recharge',
           },
-          success_url: `http://localhost:4200/payment-success?session_id={CHECKOUT_SESSION_ID}&type=wallet`,
-          cancel_url: `http://localhost:4200/payment-cancelled`,
+          
+          success_url: `${success}&type=wallet`,
+          cancel_url: cancel,
+
         });
 
     return {
@@ -130,7 +131,6 @@ async walletRecharge(userId:string, amount: number): Promise<{ success: boolean;
     if(!userId){
         return { success: false, message: 'Payment not initiated by user.' };
     }
-    // console.log("session", session);
     
     if (session.payment_status !== 'paid') {
      
@@ -138,7 +138,6 @@ async walletRecharge(userId:string, amount: number): Promise<{ success: boolean;
     } 
      const existingTxn = await this._transactionService.getTransactionByReference(sessionId);
     if (existingTxn) {
-      console.log("inside existing txn", existingTxn);
       return { success: true, message: 'Wallet already credited.' };
     } else{
         try {
@@ -153,7 +152,6 @@ async walletRecharge(userId:string, amount: number): Promise<{ success: boolean;
         });
       } catch (logError) {
         console.error("Error logging transaction:", logError);
-        // Optionally, you can handle this error further, e.g., update booking status
       }
       return { success: true, message: 'Wallet successfully credited.' };
     }

@@ -1,4 +1,6 @@
 import mongoose, {Schema, Document} from "mongoose"
+import { PaymentStatus } from "../utils/payment-status.enum";
+import { BookingStatus } from "../utils/booking-status.enum";
 
 export interface IBooking extends Document {
     userId:string;
@@ -11,12 +13,13 @@ export interface IBooking extends Document {
         longitude: number;
     };
     technicianId:string;
+    technicianName?:string;
     googleCalendarId?: string;  
     googleEventId?: string; 
     totalAmount:number;
     paymentMethod:"Cash" | "Card" | "Wallet";
-    bookingStatus: "Hold" |"Pending" | "Confirmed" | "Cancelled"| "Completed" | "Failed";
-    paymentStatus: "Pending" | "Success" | "Failed";
+    bookingStatus: BookingStatus;
+    paymentStatus: PaymentStatus
     isCompleted?:boolean;
     // stripePaymentIntentId?: string
     timeSlotStart?: Date | null; 
@@ -37,6 +40,7 @@ const bookingSchema:Schema = new Schema({
         longitude: { type: Number, required: true }
     },
     technicianId:{type:String, required:true},
+    technicianName:{type:String, required:false},
     // timeSlot: { type: Schema.Types.ObjectId, ref: 'TimeSlots', required: true },
     googleCalendarId: { type:String, required: false },
     googleEventId: {type:String, required: false},

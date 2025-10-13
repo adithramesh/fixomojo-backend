@@ -19,11 +19,13 @@
     "typescript-eslint": "^8.29.0"
   },
   "dependencies": {
+    "@stream-io/node-sdk": "^0.5.1",
     "@types/morgan": "^1.9.9",
     "argon2": "^0.41.1",
     "cloudinary": "^2.7.0",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
+    "exceljs": "^4.4.0",
     "express": "^5.1.0",
     "googleapis": "^149.0.0",
     "inversify": "^7.5.0",
@@ -32,6 +34,7 @@
     "morgan": "^1.10.0",
     "multer": "^2.0.1",
     "node-cron": "^4.2.1",
+    "socket.io": "^4.8.1",
     "stripe": "^18.2.1",
     "twilio": "^5.5.1"
   },

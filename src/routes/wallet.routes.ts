@@ -15,7 +15,7 @@ export class WalletRoutes {
         this.initializeRoutes()
     }
     private initializeRoutes(){
-        this.router.use(authMiddleware);
+        this.router.use(authMiddleware());
         this.router.get('/balance',this._walletController.getWallet.bind(this._walletController))
         this.router.post('/recharge',this._walletController.walletRecharge.bind(this._walletController))
         this.router.get('/confirm-wallet', this._walletController.walletRechargeConfirm.bind(this._walletController))

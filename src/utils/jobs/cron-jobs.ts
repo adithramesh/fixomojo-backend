@@ -1,9 +1,9 @@
 import cron from 'node-cron';
 import { TYPES } from '../../types/types';
-// import { BookingRepository } from '../../repositories/booking/booking.repository';
 import container from '../../container/container';
 import mongoose from 'mongoose';
 import { IBookingRepository } from '../../repositories/booking/booking.repository.interface';
+import { BookingStatus } from '../booking-status.enum';
 
 export const startCleanupJob = () => {
   const bookingRepository = container.get<IBookingRepository>(TYPES.IBookingRepository);
@@ -19,7 +19,7 @@ export const startCleanupJob = () => {
       });
       for (const booking of expiredBookings) {
         await bookingRepository.updateBooking((booking._id as mongoose.Types.ObjectId).toString(), {
-          bookingStatus: 'Failed',
+          bookingStatus: BookingStatus.FAILED,
           timeSlotStart: null,
           timeSlotEnd: null,
         });

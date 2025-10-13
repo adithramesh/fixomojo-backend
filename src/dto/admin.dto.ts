@@ -1,4 +1,4 @@
-// import mongoose from "mongoose";
+
 
 export interface PaginationRequestDTO {
   page: number;
@@ -64,6 +64,7 @@ export interface UserResponseDTO {
   id?: string | number;
   username: string;
   phoneNumber: string;
+  image?:string;
   email: string;
   status?: string;
   licenseStatus?: string;
@@ -76,4 +77,13 @@ export interface UserResponseDTO {
   };
   experience?:number;
   rating?:number;
+}
+
+export interface AdminDashboardResponseDTO {
+  totalRevenue:number;
+  totalBookings:number;
+  activePartners:number;
+  totalCustomers:number;
+  bookingStatusDistribution?: { status: string; count: number }[];
+  revenueTrends?: { week: number; totalRevenue: number }[];
 }

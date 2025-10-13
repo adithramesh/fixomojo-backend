@@ -10,11 +10,11 @@ export class SubServiceRepository extends BaseRepository<ISubService> implements
 
   async createSubService(serviceData: Partial<ISubService>): Promise<ISubService> {
     try {
-      // Ensure required fields are provided
+   
       if (!serviceData.subServiceName || !serviceData.serviceId || !serviceData.price) {
         throw new Error('Missing required fields: subServiceName, serviceId, or price');
       }
-      // Set default status if not provided
+      
       const subServiceData = {
         ...serviceData,
         status: serviceData.status || 'active'

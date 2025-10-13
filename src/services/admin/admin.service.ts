@@ -1,5 +1,5 @@
 import { inject, injectable } from "inversify";
-import { PaginatedResponseDTO, PaginationRequestDTO, ServiceRequestDTO, ServiceResponseDTO, SubServiceRequestDTO, SubServiceResponseDTO, UserResponseDTO } from "../../dto/admin.dto";
+import { AdminDashboardResponseDTO, PaginatedResponseDTO, PaginationRequestDTO, ServiceRequestDTO, ServiceResponseDTO, SubServiceRequestDTO, SubServiceResponseDTO, UserResponseDTO } from "../../dto/admin.dto";
 import { IAdminService } from "./admin.service.interface";
 import { TYPES } from "../../types/types";
 import { IService} from "../../models/service.models";
@@ -9,6 +9,14 @@ import { IUser } from "../../models/user.model";
 import { IServiceRepository } from "../../repositories/service/service.repository.interface";
 import { ISubServiceRepository } from "../../repositories/sub-service/sub-service.repository.interface";
 import { IUserRepository } from "../../repositories/user/user.repository.interface";
+import { IBookingRepository } from "../../repositories/booking/booking.repository.interface";
+import { ServiceStatus } from "../../utils/service-status.enum";
+import { UserStatus } from "../../utils/user-status.enum";
+import { LicenseStatus } from "../../utils/partner-license-status.enum";
+import { ServiceLookupDTO } from "../../dto/offer.dto";
+import { INotificationService } from "../notification/notification.service.interface";
+import { NotificationType } from "../../models/notification.model";
+import { SocketConfig } from "../../config/socket";
 
 
 @injectable()
@@ -16,7 +24,10 @@ export class AdminService implements IAdminService {
     constructor(
         @inject(TYPES.IServiceRepository) private _serviceRepository:IServiceRepository,
         @inject(TYPES.IUserRepository) private _userRepository:IUserRepository,
-        @inject(TYPES.ISubServiceRepository) private _subServiceRepository:ISubServiceRepository
+        @inject(TYPES.ISubServiceRepository) private _subServiceRepository:ISubServiceRepository,
+        @inject(TYPES.IBookingRepository) private _bookingRepository:IBookingRepository,
+        @inject(TYPES.INotificationService) private _notificationService: INotificationService,
+        @inject(TYPES.SocketConfig) private _socketService: SocketConfig
     ){}
     async createService(serviceData: ServiceRequestDTO): Promise<ServiceResponseDTO> {
         const { serviceName, image, description } = serviceData;
@@ -42,30 +53,24 @@ export class AdminService implements IAdminService {
     
     async createSubService(serviceId: string, subServiceData: SubServiceRequestDTO): Promise<SubServiceResponseDTO> {
     try {
-      console.log("create sub-service, service layer, serviceId: ", serviceId);
-      console.log("create sub-service,service layer, subServiceData: ", subServiceData);
       const parentService = await this._serviceRepository.findServiceById(serviceId);
       if (!parentService) {
         throw new Error('Service not found');
       }
 
-      // Create sub-service with serviceId
       const subServiceDataWithServiceId = {
         ...subServiceData,
         serviceId: new mongoose.Types.ObjectId(serviceId),
-        // serviceId,
         serviceName:parentService.serviceName,
-        status: subServiceData.status || 'active' // Default status
+        status: subServiceData.status || 'active' 
       };
 
       const createdSubService:ISubService = await this._subServiceRepository.createSubService(subServiceDataWithServiceId);
 
-      // Return SubServiceResponseDTO
       return {
         id: (createdSubService._id as mongoose.Types.ObjectId).toString(),
         subServiceName: createdSubService.subServiceName,
         serviceId: createdSubService.serviceId.toString(),
-        // serviceId: createdSubService.serviceId,
         serviceName: createdSubService.serviceName,
         price: createdSubService.price,
         description: createdSubService.description,
@@ -99,6 +104,7 @@ export class AdminService implements IAdminService {
           id: (user._id as mongoose.Types.ObjectId).toString(),
           username: user.username || '',
           email: user.email || '',
+          image:user.image || '',
           phoneNumber: user.phoneNumber || '',
           status: user.status,
           licenseStatus:user.licenseStatus,
@@ -112,7 +118,6 @@ export class AdminService implements IAdminService {
           experience: user.experience || 2,
           createdAt: user.createdAt ? user.createdAt.toISOString() : ''
         }));
-        console.log("user DTO", userDTOs);
         
         return {
           items: userDTOs,
@@ -138,9 +143,6 @@ export class AdminService implements IAdminService {
           { 'subServices.subServiceName': { $regex: searchTerm, $options: 'i' } }
         ];
         }
-
-
-        console.log("filter", filter);
         
         const services = await this._serviceRepository.findServciesPaginated(skip,pageSize,sortBy?sortBy:'', sortOrder?sortOrder:'',filter?filter:{})
         const totalServices = await this._serviceRepository.countServices(filter)
@@ -179,10 +181,6 @@ export class AdminService implements IAdminService {
         filter.serviceId = new mongoose.Types.ObjectId(filter.serviceId);
       }
 
-      
-
-      console.log('Filter applied1:', filter);
-
       const subServices = await this._subServiceRepository.findSubServicesPaginated(
         skip,
         pageSize,
@@ -200,9 +198,8 @@ export class AdminService implements IAdminService {
       const subServiceDTOs: SubServiceResponseDTO[] = subServices.map(subService => ({
         id: (subService._id as mongoose.Types.ObjectId).toString(),
         subServiceName: subService.subServiceName,
-        // serviceId: subService.serviceId.toString(),
         serviceId: subService.serviceId ? subService.serviceId._id.toString() : '',
-        serviceName: subService.serviceName || '', // Populated from Service
+        serviceName: subService.serviceName || '', 
         image: subService.image || '',
         description: subService.description || '',
         status: subService.status,
@@ -244,7 +241,6 @@ export class AdminService implements IAdminService {
   async getSubServiceById(subServiceId:string):Promise<SubServiceResponseDTO>{
     try {
       const subService = await this._subServiceRepository.findById(subServiceId)
-      console.log("subService: ", subService);
       
       if (!subService) {
       throw new Error(`Sub-service with ID ${subServiceId} not found`);
@@ -252,7 +248,6 @@ export class AdminService implements IAdminService {
       return {
         id:(subService._id as mongoose.Types.ObjectId).toString(),
         serviceId:(subService.serviceId._id as mongoose.Types.ObjectId).toString(),
-        // serviceName: subService.serviceId.serviceName,
         subServiceName:subService?.subServiceName,
         description:subService?.description,
         image:subService?.image,
@@ -276,26 +271,32 @@ export class AdminService implements IAdminService {
 
         if (licenseStatus) {
           updates.licenseStatus = licenseStatus;
-          // Update status based on licenseStatus for partners
           if (user.role === 'partner') {
-            updates.status = licenseStatus === 'approved' ? 'active' : 'pending';
+            updates.status = licenseStatus === LicenseStatus.APPROVED ? LicenseStatus.ACTIVE : LicenseStatus.PENDING;
           }
         }
       
         else {
-          console.log("else block");
-          updates.status = user.status === 'active' ? 'blocked' : 'active';
+          updates.status = user.status === UserStatus.ACTIVE ? UserStatus.BLOCKED : UserStatus.ACTIVE;
         }
-        console.log("updates", updates);
         
         const upus =await this._userRepository.updateUser(userId, updates);
         console.log("upus", upus);
           
         const updatedUser: IUser | null = await this._userRepository.findUserById(userId);
-        console.log("updatedUser", updatedUser);
         
         if(!updatedUser){
           throw new Error('Failed to retrieve updated user');
+        }
+
+        if(updatedUser.status === UserStatus.BLOCKED ){
+          await this._notificationService.createNotification(
+                      updatedUser.id,
+                      updatedUser.role,
+                      NotificationType.SystemAlert,
+                      `Your account status has been changed to ${updatedUser.status}.`
+                    );
+              this._socketService.emitToUser(updatedUser.id.toString(), 'end-call', { reason: 'account_blocked' });
         }
     
         return {
@@ -314,20 +315,20 @@ export class AdminService implements IAdminService {
       }
     }
 
-    async updateUser(userId: string, updateData: Partial<IUser>): Promise<UserResponseDTO> {
+     async updateUser(userId: string, updateData: {location:{address:string; latitude:number; longitude:number}}): Promise<UserResponseDTO> {
       try {
         const user = await this._userRepository.findUserById(userId)
         if(!user){
-          throw new Error('Service not found to update'); 
+          throw new Error('User not found to update'); 
         }
-        console.log("update data in service", updateData);
-        
+
         await this._userRepository.updateUser(userId, updateData)
 
         const updatedUser = await this._userRepository.findUserById(userId)
          if(!updatedUser){
-          throw new Error('Failed to retrieve updated service');
+          throw new Error('Failed to retrieve updated user');
         }
+        
         return {
           id: (updatedUser._id as mongoose.Types.ObjectId).toString(),
           username: updatedUser.username,
@@ -352,7 +353,8 @@ export class AdminService implements IAdminService {
           throw new Error('Service not found to update status'); 
         }
 
-        const newStatus = service.status === 'active' ? 'blocked' : 'active';
+        // const newStatus = service.status === 'active' ? 'blocked' : 'active';
+        const newStatus = service.status === ServiceStatus.ACTIVE ? ServiceStatus.BLOCKED : ServiceStatus.ACTIVE;
         await this._serviceRepository.updateService(serviceId, { status: newStatus });
 
         const updatedService: IService | null = await this._serviceRepository.findServiceById(serviceId);
@@ -379,7 +381,8 @@ export class AdminService implements IAdminService {
           throw new Error('Service not found to update status'); 
         }
 
-        const newStatus = subService.status === 'active' ? 'blocked' : 'active';
+        // const newStatus = subService.status === 'active' ? 'blocked' : 'active';
+        const newStatus = subService.status === ServiceStatus.ACTIVE ? ServiceStatus.BLOCKED : ServiceStatus.ACTIVE;
         await this._subServiceRepository.updateSubService(subServiceId, { status: newStatus });
 
         const updatedSubService: ISubService | null = await this._subServiceRepository.findById(subServiceId);
@@ -428,18 +431,12 @@ export class AdminService implements IAdminService {
     async updateSubService(subServiceId:string, subServiceData:SubServiceRequestDTO):Promise<SubServiceResponseDTO>{
       try {
         const subService = await this._subServiceRepository.findById(subServiceId)
-        console.log("update sub-service, service layer, serviceId: ", subServiceId);
-        console.log("update sub-service,service layer, subServiceData: ", subServiceData);
         if(!subService){
           throw new Error('Sub-service not found to update'); 
         }
-        console.log("subServiceId, subServiceData", subServiceId, subServiceData);
-        
         await this._subServiceRepository.updateSubService(subServiceId, subServiceData)
 
         const updatedSubService = await this._subServiceRepository.findById(subServiceId)
-        console.log("updatedSubService", updatedSubService);
-        
          if(!updatedSubService){
           throw new Error('Failed to retrieve updated service');
         }
@@ -467,4 +464,56 @@ export class AdminService implements IAdminService {
         throw error;
       }
     }
+
+ 
+
+    async getDashboard( startDate?: string, endDate?: string): Promise<AdminDashboardResponseDTO> {
+    try {
+      const totalCustomers = await this._userRepository.countUsers({ role: 'user',startDate, endDate });
+
+      const totalBookings = await this._bookingRepository.countBookings({}, startDate, endDate);
+
+      const activePartners = await this._userRepository.countUsers({
+        role: 'partner',
+        status: 'active',
+        startDate, endDate
+      });
+
+      let totalRevenue = await this._bookingRepository.calculateTotalRevenue(startDate, endDate);
+
+      if (!totalRevenue) totalRevenue = 0;
+
+      const bookingStatusDistribution = await this._bookingRepository.getBookingStatusDistribution(startDate, endDate);
+
+      const revenueTrends = await this._bookingRepository.getRevenueTrends(startDate, endDate);
+
+      return {
+        totalCustomers,
+        totalBookings,
+        activePartners,
+        totalRevenue,
+        bookingStatusDistribution,
+        revenueTrends
+      };
+    } catch (error) {
+      console.error('Error in getDashboard:', error);
+      throw new Error('Failed to fetch dashboard data');
+    }
+  }
+
+  async getAllActiveServices(): Promise<ServiceLookupDTO[]> {
+  try {
+    const services = await this._serviceRepository.findAllActiveServices();
+    const serviceDTOs: ServiceLookupDTO[] = services.map(service => ({
+      id: (service._id as mongoose.Types.ObjectId).toString(),
+      serviceName: service.serviceName,
+    }));
+    return serviceDTOs;
+  } catch (error) {
+    console.error("Error in getAllActiveServices service:", error);
+    throw error;
+  }
+}
+
+    
 }

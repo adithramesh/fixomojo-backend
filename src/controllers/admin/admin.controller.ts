@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { PaginatedResponseDTO, PaginationRequestDTO, ServiceRequestDTO, ServiceResponseDTO, SubServiceRequestDTO, SubServiceResponseDTO, UserResponseDTO } from "../../dto/admin.dto";
+import {  PaginatedResponseDTO, PaginationRequestDTO, ServiceRequestDTO, ServiceResponseDTO, SubServiceRequestDTO, SubServiceResponseDTO, UserResponseDTO } from "../../dto/admin.dto";
 import { IAdminController } from "./admin.controller.interface";
 import { inject, injectable } from "inversify";
 import { TYPES } from "../../types/types";
@@ -8,13 +8,18 @@ import { uploadToCloudinary } from "../../utils/cloudinary.uploader";
 import mongoose from "mongoose";
 import { AuthRequest } from "../../middlewares/auth.middleware";
 import { IAdminService } from "../../services/admin/admin.service.interface";
+import { StreamTokenResponseDTO } from "../../dto/stream.dto";
+import { IStreamService } from "../../services/stream/stream.service.interface";
+import { ServiceLookupDTO } from "../../dto/offer.dto";
+
 type EmptyParams = Record<string, never>;
 
 @injectable()
 export class AdminController implements IAdminController {
   constructor(
-    @inject(TYPES.IAdminService) private _adminService: IAdminService
-  ) {}
+    @inject(TYPES.IAdminService) private _adminService: IAdminService,
+    @inject(TYPES.IStreamService) private _streamService : IStreamService
+  ) {} 
   async addService(
     req: Request<EmptyParams, object, ServiceRequestDTO>,
     res: Response<ServiceResponseDTO>
@@ -24,10 +29,8 @@ export class AdminController implements IAdminController {
       if (req.file) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const uploadResult:any = await uploadToCloudinary(req.file.buffer, 'services');
-        // serviceData.image = uploadResult.secure_url;
         serviceData.image = uploadResult.public_id;
       }
-      console.log("serviceData",serviceData);
       const response = await this._adminService.createService(serviceData);
       res.status(HttpStatus.CREATED).json(response);
     } catch (error) {
@@ -43,11 +46,8 @@ export class AdminController implements IAdminController {
       if (req.file) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const uploadResult:any = await uploadToCloudinary(req.file.buffer, 'sub-services');
-        // subServiceData.image = uploadResult.secure_url;
         subServiceData.image = uploadResult.public_id
       }
-      console.log("create sub-service,controller layer, serviceId: ", serviceId);
-      console.log("create sub-service, controller layer, subServiceData: ", subServiceData);
 
       const response = await this._adminService.createSubService(serviceId!, subServiceData)
       res.status(HttpStatus.CREATED).json(response);
@@ -59,7 +59,6 @@ export class AdminController implements IAdminController {
 
   async getUsers(req:Request, res: Response<PaginatedResponseDTO<UserResponseDTO[]>>): Promise<void> {
     try {
-      console.log("inside getUsers");
       const pagination: PaginationRequestDTO = {
         page: parseInt(req.query.page as string) || 1,
         pageSize: parseInt(req.query.pageSize as string) || 10,
@@ -89,12 +88,8 @@ export class AdminController implements IAdminController {
         sortOrder: (req.query.sortOrder as string) || 'asc',
         searchTerm:(req.query.searchTerm as string) || '',
         filter: {}
-      };
-      console.log("paginaton in getServices", pagination);
-      
+      };      
       const response = await this._adminService.getServices(pagination);
-      console.log("response",response);
-      
       res.status(HttpStatus.SUCCESS).json(response);
     } catch (error) {
       console.log("error occured", error);
@@ -111,28 +106,20 @@ export class AdminController implements IAdminController {
         sortOrder: (req.query.sortOrder as string) || 'asc',
         searchTerm: req.query.searchTerm as string || '',
         filter:  {},
-        
-        
-        // {
-        //   serviceId: req.query.serviceId ? { serviceId: req.query.serviceId as string } : {}
-        // }
+
       };
       if (req.query.serviceId) {
-            // pagination.filter.serviceId = req.query.serviceId as string;
             const serviceId = req.query.serviceId as string;
             if (mongoose.Types.ObjectId.isValid(serviceId)) {
                 pagination.filter.serviceId = serviceId;
             } else {
-              console.log('Invalid serviceId format in get subservice controller');
                res.status(HttpStatus.BAD_REQUEST);
             }
         }
     const serviceName= req.query.serviceName as string
       if(serviceName){
-        console.log("inside service id filter");
         pagination.filter= {serviceName}
       }
-      console.log('Received pagination:', pagination);
       const response = await this._adminService.getSubServices(pagination);
       res.status(HttpStatus.SUCCESS).json(response);
     } catch (error) {
@@ -169,7 +156,6 @@ export class AdminController implements IAdminController {
     try {
       const userId=req.params.id;
       const  licenseStatusObject  = req.body;
-      console.log("userId",userId);
       const response = await this._adminService.changeUserStatus(userId, licenseStatusObject.licenseStatus)
       res.status(HttpStatus.SUCCESS).json(response);
     } catch (error) {
@@ -189,8 +175,6 @@ export class AdminController implements IAdminController {
         longitude
       }
     };
-      console.log("updatePayload", updatePayload);
-      
       const response = await this._adminService.updateUser(userId, updatePayload)
       res.status(HttpStatus.SUCCESS).json(response);
     } catch (error) {
@@ -202,8 +186,6 @@ export class AdminController implements IAdminController {
   async changeServiceStatus(req: Request, res: Response<ServiceResponseDTO>): Promise<void> {
     try {
       const serviceId=req.params.id;
-      console.log("serviceId",serviceId);
-      
       const response = await this._adminService.changeServiceStatus(serviceId)
       res.status(HttpStatus.SUCCESS).json(response);
     } catch (error) {
@@ -215,7 +197,6 @@ export class AdminController implements IAdminController {
    async changeSubServiceStatus(req: Request, res: Response<SubServiceResponseDTO>): Promise<void> {
     try {
       const subServiceId=req.params.id;
-      console.log("subServiceId",subServiceId);
       const response = await this._adminService.changeSubServiceStatus(subServiceId)
       res.status(HttpStatus.SUCCESS).json(response);
     } catch (error) {
@@ -228,7 +209,6 @@ export class AdminController implements IAdminController {
      try {
       const serviceId = req.params.id
       const serviceData = req.body
-      console.log(`update service,req.params ${req.params}, req.body ${req.body}, req.file:${req.file} ` );
        if (req.file) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const uploadResult:any = await uploadToCloudinary(req.file.buffer, 'services');
@@ -247,10 +227,6 @@ export class AdminController implements IAdminController {
     try {
       const subServiceId = req.params.id 
       const subServiceData = req.body
-      console.log("Update Sub Service controller ");
-      console.log("req.params:", req.params);
-      console.log("req.body:", req.body);
-      console.log("req.file:", req.file);
       if (req.file) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const uploadResult:any = await uploadToCloudinary(req.file.buffer, 'sub-services');
@@ -272,6 +248,55 @@ export class AdminController implements IAdminController {
     } catch (error) {
       console.log("error occured", error);
       res.status(HttpStatus.INTERNAL_SERVER_ERROR)
+    }
+  }
+
+  // async getDashboard(req: AuthRequest, res: Response<AdminDashboardResponseDTO>): Promise<void> {
+  //   try {
+  //     const userId = req.user?.id.toString() ||""
+  //     const response = await this._adminService.getDashboard(userId)
+  //     res.status(HttpStatus.SUCCESS).json(response)
+  //   } catch (error) {
+  //     console.log("error occured", error);
+  //     res.status(HttpStatus.INTERNAL_SERVER_ERROR)
+  //   }
+  // }
+
+  async getDashboard(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      const { startDate, endDate } = req.query; // get from query params
+      // const userId = req.user?.id; 
+
+      const dashboardData = await this._adminService.getDashboard(
+        // userId!,
+        startDate as string,
+        endDate as string
+      );
+
+      res.status(HttpStatus.SUCCESS).json(dashboardData);
+    } catch (error) {
+      console.error('Error fetching dashboard:', error);
+      res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: 'Failed to fetch dashboard data' });
+    }
+  }
+  async getStreamToken(req: AuthRequest, res: Response<StreamTokenResponseDTO>): Promise<void> {
+    try {
+      const userId = req.user?.id;
+      const token = await this._streamService.generateStreamToken(userId!);
+      res.status(HttpStatus.SUCCESS).json({success:true,message:'Token Generated', data:{token}, status:HttpStatus.SUCCESS})
+    } catch (error:unknown) {
+      console.error('Error generating Stream token:', error);
+      res.status(HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  async getAllActiveServices(_req:Request, res:Response<ServiceLookupDTO[]>): Promise<void> {
+    try {
+      const response = await this._adminService.getAllActiveServices()
+      res.status(HttpStatus.SUCCESS).json(response)
+    } catch (error:unknown) {
+      console.error('Error generating Stream token:', error);
+      res.status(HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 }
