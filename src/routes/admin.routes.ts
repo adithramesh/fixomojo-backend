@@ -2,7 +2,7 @@ import { Router } from 'express'
 import { inject, injectable } from 'inversify'
 import { TYPES } from '../types/types'
 import { authMiddleware } from '../middlewares/auth.middleware'  
-import { upload } from '../../src/config/multer.config'
+import { upload } from '../config/multer.config'
 import { IAdminController } from '../controllers/admin/admin.controller.interface'
 import { Role } from '../models/user.model'
 

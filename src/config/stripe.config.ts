@@ -19,11 +19,11 @@ export function getStripeUrls(): { success: string; cancel: string } {
         success: config.STRIPE_TUNNEL_SUCCESS_URL,
         cancel: config.STRIPE_TUNNEL_CANCEL_URL,
       };
-    // case 'production':
-    //   return {
-    //     success: config.STRIPE_HOSTED_SUCCESS_URL,
-    //     cancel: config.STRIPE_HOSTED_CANCEL_URL,
-    //   };
+    case 'production':
+      return {
+        success: config.STRIPE_HOSTED_SUCCESS_URL,
+        cancel: config.STRIPE_HOSTED_CANCEL_URL,
+      };
     default:
       throw new Error(`Unknown env: ${env}. Check .env NODE_ENV.`);
   }

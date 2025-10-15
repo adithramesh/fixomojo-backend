@@ -12,13 +12,13 @@ interface Config{
     TWILIO_PHONE:string;
     GOOGLE_SERVICE_ACCOUNT_KEY_PATH:string;
     GOOGLE_CALENDAR_SCOPES:string[];
-    RAZORPAY_KEY_ID: string;
-    RAZORPAY_KEY_SECRET: string;
     STRIPE_SECRET_KEY:string;
     STRIPE_SUCCESS_URL:string;
     STRIPE_CANCEL_URL:string;
     STRIPE_TUNNEL_SUCCESS_URL:string;
     STRIPE_TUNNEL_CANCEL_URL:string;
+    STRIPE_HOSTED_SUCCESS_URL:string;
+    STRIPE_HOSTED_CANCEL_URL:string;
     CLOUDINARY_NAME:string;
     CLOUDINARY_API_KEY:string;
     CLOUDINARY_API_SECRET:string;
@@ -45,8 +45,6 @@ const config:Config = {
         'google-service-account-key.json' // The name of your downloaded JSON file
     ),
     GOOGLE_CALENDAR_SCOPES: process.env.GOOGLE_CALENDAR_SCOPES ? process.env.GOOGLE_CALENDAR_SCOPES.split(',') : ['https://www.googleapis.com/auth/calendar'],
-    RAZORPAY_KEY_ID: process.env.RAZORPAY_KEY_ID as string,
-    RAZORPAY_KEY_SECRET: process.env.RAZORPAY_KEY_SECRET as string,
     STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY as string,
     CLOUDINARY_NAME:process.env.CLOUDINARY_NAME as string,
     CLOUDINARY_API_KEY:process.env.CLOUDINARY_API_KEY as string,
@@ -58,6 +56,8 @@ const config:Config = {
     STRIPE_CANCEL_URL:process.env.STRIPE_CANCEL_URL as string,
     STRIPE_TUNNEL_SUCCESS_URL:process.env.STRIPE_TUNNEL_SUCCESS_URL as string,
     STRIPE_TUNNEL_CANCEL_URL:process.env.STRIPE_TUNNEL_CANCEL_URL as string,
+    STRIPE_HOSTED_SUCCESS_URL:process.env.STRIPE_TUNNEL_SUCCESS_URL as string,
+    STRIPE_HOSTED_CANCEL_URL:process.env.STRIPE_TUNNEL_CANCEL_URL as string,
     ACCESS_TOKEN_EXPIRY:process.env.ACCESS_TOKEN_EXPIRY as string,
     REFRESH_TOKEN_EXPIRY:process.env.REFRESH_TOKEN_EXPIRY as string,
     NODE_ENV:process.env.NODE_ENV as string || 'development'
