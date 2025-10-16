@@ -17,6 +17,8 @@ export class UserController implements IUserController{
     async getHome( req: Request,res: Response<HomeResponseDTO>): Promise<void> {
         const searchTerm = req.query.searchTerm as string
         const response = await this._userService.getHome(searchTerm)
+        console.log("CI/CD working");
+        
         res.status(HttpStatus.SUCCESS).json(response)
     }
 
