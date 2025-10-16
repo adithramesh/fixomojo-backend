@@ -1,8 +1,8 @@
-name: Backend CI/CD Pipeline (Build Locally, Deploy Dist Only)
+name: Backend CI/CD Pipeline (Direct Dist Copy)
 
 on:
   push:
-    branches: [main]  # Trigger on push to main branch
+    branches: [main]   # Trigger when code is pushed to main
 
 jobs:
   build:
@@ -25,15 +25,15 @@ jobs:
       - name: Build TypeScript
         run: npm run build
 
-      - name: Create deployment archive
-        run: |
-          tar -czf dist.tar.gz dist package.json package-lock.json
-
-      - name: Upload artifact for deployment
+      - name: Upload build for deployment
         uses: actions/upload-artifact@v4
         with:
           name: backend-dist
-          path: dist.tar.gz
+          path: |
+            dist/
+            package.json
+            package-lock.json
+            .env
 
   deploy:
     name: Deploy to AWS EC2
@@ -48,17 +48,17 @@ jobs:
           name: backend-dist
           path: .
 
-      - name: Copy build to EC2 via SCP
+      - name: Copy build files to EC2 (no compression)
         uses: appleboy/scp-action@v0.1.4
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           port: 22
-          source: "dist.tar.gz"
+          source: "./dist/*,package.json,package-lock.json,.env"
           target: "/home/ubuntu/fixomojo-backend"
 
-      - name: Deploy on EC2 (extract + restart)
+      - name: Deploy on EC2 and Restart App
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.EC2_HOST }}
@@ -67,8 +67,20 @@ jobs:
           port: 22
           script: |
             cd /home/ubuntu/fixomojo-backend
-            tar -xzf dist.tar.gz
-            rm dist.tar.gz
+
+            echo "🧹 Cleaning previous dependencies..."
+            rm -rf node_modules
+
+            echo "📦 Installing production dependencies..."
             npm install 
-            pm2 restart fixomojo 
+
+            echo "🚀 Restarting backend using PM2..."
+            if pm2 describe fixomojo > /dev/null; then
+              pm2 restart fixomojo
+            else
+              pm2 start dist/server.js --name fixomojo
+            fi
+
+            pm2 save
             echo "✅ Deployment completed successfully!"
+
