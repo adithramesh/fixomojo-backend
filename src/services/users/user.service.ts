@@ -103,7 +103,7 @@ export class UserService implements IUserService {
         success_url: `${success}&type=card`,
         cancel_url: cancel,
       });
-
+      
       return {
         success: true,
         message: 'Booking initiated. Proceed to payment.',

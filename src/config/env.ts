@@ -56,8 +56,8 @@ const config:Config = {
     STRIPE_CANCEL_URL:process.env.STRIPE_CANCEL_URL as string,
     STRIPE_TUNNEL_SUCCESS_URL:process.env.STRIPE_TUNNEL_SUCCESS_URL as string,
     STRIPE_TUNNEL_CANCEL_URL:process.env.STRIPE_TUNNEL_CANCEL_URL as string,
-    STRIPE_HOSTED_SUCCESS_URL:process.env.STRIPE_TUNNEL_SUCCESS_URL as string,
-    STRIPE_HOSTED_CANCEL_URL:process.env.STRIPE_TUNNEL_CANCEL_URL as string,
+    STRIPE_HOSTED_SUCCESS_URL:process.env.STRIPE_HOSTED_SUCCESS_URL as string,
+    STRIPE_HOSTED_CANCEL_URL:process.env.STRIPE_HOSTED_CANCEL_URL as string,
     ACCESS_TOKEN_EXPIRY:process.env.ACCESS_TOKEN_EXPIRY as string,
     REFRESH_TOKEN_EXPIRY:process.env.REFRESH_TOKEN_EXPIRY as string,
     NODE_ENV:process.env.NODE_ENV as string || 'development'
