@@ -69,6 +69,6 @@ jobs:
             cd /home/ubuntu/fixomojo-backend
             tar -xzf dist.tar.gz
             rm dist.tar.gz
-            npm install --production
-            pm2 restart fixomojo || pm2 start dist/server.js --name fixomojo
+            npm install 
+            pm2 restart fixomojo 
             echo "✅ Deployment completed successfully!"
