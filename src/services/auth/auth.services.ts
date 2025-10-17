@@ -5,7 +5,7 @@ import { IAuthService } from "./auth.service.interface";
 import { IOtpService } from "./otp.service";
 import { IPasswordService } from "./password.service";
 import { injectable, inject } from "inversify";
-// import twilio from "twilio";
+import twilio from "twilio";
 import jwt from "jsonwebtoken";
 import config from "../../config/env";
 import mongoose from "mongoose";
@@ -14,7 +14,7 @@ import { ForgotPasswordRequestDTO, ResetPasswordRequestDTO } from "../../dto/pas
 import { HttpStatus } from "../../utils/http-status.enum";
 import { IUserRepository } from "../../repositories/user/user.repository.interface";
 import { IOtpRepository } from "../../repositories/otp/otp.repository.interface";
-// const client =twilio(config.TWILIO_SID,config.TWILIO_AUTH_TOKEN)
+const client =twilio(config.TWILIO_SID,config.TWILIO_AUTH_TOKEN)
 
 @injectable()
 export class AuthService implements IAuthService {
@@ -57,19 +57,19 @@ export class AuthService implements IAuthService {
         const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
         await this._otpRepository.createOtp({ userId, otp, expiresAt });
         
-        // try {
-        //     const verification = await client.verify.v2
-        //         .services("VA91f25123daf1ace8064eb1105aa93e1c")
-        //         .verifications.create({
-        //             to: phoneNumber, // Use the dynamic phone number from signUpData
-        //             channel: 'sms',
-        //             customCode: otp,
-        //         });
-        //     console.log("OTP sent, status:", verification.status,"Custom code:", otp);
-        // } catch (error) {
-        //     console.error("Error sending OTP:",error);
-        //     return { success: false, message: "Failed to send OTP", status: 500 };
-        // }
+        try {
+            const verification = await client.verify.v2
+                .services("VA91f25123daf1ace8064eb1105aa93e1c")
+                .verifications.create({
+                    to: phoneNumber, // Use the dynamic phone number from signUpData
+                    channel: 'sms',
+                    customCode: otp,
+                });
+            console.log("OTP sent, status:", verification.status,"Custom code:", otp);
+        } catch (error) {
+            console.error("Error sending OTP:",error);
+            return { success: false, message: "Failed to send OTP", status: 500 };
+        }
 
         return {
             success: true,
@@ -164,18 +164,18 @@ export class AuthService implements IAuthService {
         await this._otpRepository.createOtp({ userId: tempUserId, otp, expiresAt });
         console.log("otp", otp, phoneNumber);
 
-        // try {
-        //     const verification = await client.verify.v2
-        //         .services("VA91f25123daf1ace8064eb1105aa93e1c")
-        //         .verifications.create({
-        //             to: phoneNumber, // Use the dynamic phone number from signUpData
-        //             channel: 'sms',
-        //         });
-        //     console.log("OTP sent from resent otp, status:", verification.status);
-        // } catch (error) {
-        //     console.error("Error sending OTP:",error);
-        //     return { success: false, message: "Failed to send OTP", status: 500 };
-        // }
+        try {
+            const verification = await client.verify.v2
+                .services("VA91f25123daf1ace8064eb1105aa93e1c")
+                .verifications.create({
+                    to: phoneNumber, // Use the dynamic phone number from signUpData
+                    channel: 'sms',
+                });
+            console.log("OTP sent from resent otp, status:", verification.status);
+        } catch (error) {
+            console.error("Error sending OTP:",error);
+            return { success: false, message: "Failed to send OTP", status: 500 };
+        }
 
         return {
             success: true,

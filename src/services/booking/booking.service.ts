@@ -19,6 +19,8 @@ import { Role } from "../../models/user.model";
 import { BookingStatus } from "../../utils/booking-status.enum";
 import { BookingResponseDTO } from "../../dto/book-service.dto";
 import { ITimeSlotService } from "../time-slot/time-slot.service.interface";
+import twilio from "twilio";
+const client =twilio(config.TWILIO_SID,config.TWILIO_AUTH_TOKEN)
 
 @injectable()
 export class BookingService implements IBookingService {
@@ -192,20 +194,6 @@ export class BookingService implements IBookingService {
     }
   }
 
-  // async countBookings():Promise<any>{
-  //   try {
-  //     const count = await this._bookingRepository.countBookings()
-  //     console.log("count bookings in service", count);
-  //     return count
-  //   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  //   } catch (error:any) {
-  //      console.error("Error in counting bookings:", error);
-  //     return {
-  //       success: false,
-  //       message: `failed to count bookings : ${error.message || error}`,
-  //     };
-  //   }
-  // }
 
   async initiateWorkComplete(
     technicianId: string,
@@ -225,20 +213,22 @@ export class BookingService implements IBookingService {
         bookingId,
         otp,
       });
-      // const {phoneNumber} = await this._userRepository.findUserById(booking.userId.toString());
-      // try {
-      //     const verification = await client.verify.v2
-      //         .services("VA91f25123daf1ace8064eb1105aa93e1c")
-      //         .verifications.create({
-      //             to: phoneNumber, // Use the dynamic phone number from signUpData
-      //             channel: 'sms',
-      //             customCode: otp,
-      //         });
-      //     console.log("OTP sent, status:", verification.status,"Custom code:", otp);
-      // } catch (error) {
-      //     console.error("Error sending OTP:",error);
-      //     return { success: false, message: "Failed to send OTP", status: 500 };
-      // }
+     
+      const user = await this._userRepository.findUserById(booking.userId.toString());
+      const { phoneNumber } = user!;
+      try {
+          const verification = await client.verify.v2
+              .services("VA91f25123daf1ace8064eb1105aa93e1c")
+              .verifications.create({
+                  to: phoneNumber, // Use the dynamic phone number from signUpData
+                  channel: 'sms',
+                  customCode: otp,
+              });
+          console.log("OTP sent, status:", verification.status,"Custom code:", otp);
+      } catch (error) {
+          console.error("Error sending OTP:",error);
+          return { success: false, message: "Failed to send OTP" };
+      }
       console.log("otp for work completion", otp);
 
       await this._notificationService.createNotification(
