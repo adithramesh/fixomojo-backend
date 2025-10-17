@@ -29,7 +29,7 @@ export class AdminRoutes {
         this.router.put('/sub-services/:id/update-service', authMiddleware([Role.ADMIN]), upload.single('image'), this._adminController.updateSubService.bind(this._adminController))
         this.router.get('/active-services', authMiddleware([Role.ADMIN]), this._adminController.getAllActiveServices.bind(this._adminController))
         //location
-        this.router.patch('/partner/:id/location', authMiddleware([Role.ADMIN]), this._adminController.updateUser.bind(this._adminController))
+        this.router.patch('/partner/:id/location', authMiddleware([Role.ADMIN, Role.PARTNER]), this._adminController.updateUser.bind(this._adminController))
         this.router.get('/saved-location', authMiddleware([Role.ADMIN, Role.PARTNER]), this._adminController.savedLocation.bind(this._adminController))
         //dashboard
         this.router.get('/dashboard', authMiddleware([Role.ADMIN]), this._adminController.getDashboard.bind(this._adminController))
